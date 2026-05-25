@@ -32,7 +32,15 @@ export default function Hero() {
 
       {/* ── Chevron down — bottom-centre ── */}
       <button
-        onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+        onClick={() => {
+          const target = document.getElementById('about');
+          if (!target) return;
+          // Land ~180px below the cream block's top edge so the
+          // black→cream transition sits just below the fixed header
+          // (~120px tall) with breathing room before the "About" heading.
+          const y = target.getBoundingClientRect().top + window.scrollY - 180;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }}
         aria-label="Scroll to next section"
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
       >
