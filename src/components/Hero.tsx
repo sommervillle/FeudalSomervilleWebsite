@@ -38,15 +38,18 @@ export default function Hero() {
 
       </div>
 
-      {/* ── Chevron down — bottom-centre ── */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+      {/* ── Chevron down — bottom-centre, scrolls to AboutBlock on click ── */}
+      <button
+        onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+        aria-label="Scroll to next section"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
+      >
         <svg
           width="16"
           height="9"
           viewBox="0 0 16 9"
           fill="none"
           aria-hidden="true"
-          className="text-fg/35"
         >
           <path
             d="M1 1L8 8L15 1"
@@ -56,7 +59,7 @@ export default function Hero() {
             strokeLinejoin="round"
           />
         </svg>
-      </div>
+      </button>
 
     </section>
   );

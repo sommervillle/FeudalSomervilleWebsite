@@ -11,45 +11,82 @@ import FooterBlock from './components/FooterBlock';
 
   Header behaviour:
     - Transparent when floating over any dark section
-    - Solid bg-bg (#0A0A0A) when over a cream section, so nav text stays readable
-    - Smooth 200ms colour transition
-    - Detected by checking getBoundingClientRect() of the cream section IDs
-      against the approximate header height on every scroll event
+    - Solid bg-bg (#0A0A0A) when a cream section is approaching or behind the header
+    - Smooth 200ms transition-colors
+
+  Detection strategy — IntersectionObserver, not a scroll listener:
+    We create an effective observation zone of exactly TRIGGER_PX height
+    at the top of the viewport by setting a large negative rootMargin on
+    the bottom. A cream section fires isIntersecting=true the moment its
+    top edge enters that zone (80px before it reaches the actual header
+    bottom), and false once its bottom exits upward.
+    A Set tracks which cream sections are currently active so the state
+    is correct even when two cream sections are simultaneously near the
+    header (e.g. on a very short viewport).
+    The observer is recreated on window resize because rootMargin values
+    are in px and depend on window.innerHeight.
 */
 
 const NAV_LINKS = [
-  { label: 'Info',        href: '#about'       },
-  { label: 'Work',        href: '#work'         },
-  { label: 'Somervilles', href: '#somervilles'  },
-  { label: 'Vimeo',       href: '#'             },
-  { label: 'Contact',     href: '#footerblock'  },
+  { label: 'Info',        href: '#about'      },
+  { label: 'Work',        href: '#work'        },
+  { label: 'Somervilles', href: '#somervilles' },
+  { label: 'Vimeo',       href: '#'            },
+  { label: 'Contact',     href: '#footerblock' },
 ] as const;
 
-// IDs of sections with cream (bg-fg) backgrounds — header goes solid over these.
+// Cream-background section IDs — header goes solid when any is near the top.
 const CREAM_IDS = ['about', 'footerblock'] as const;
-// Approximate fixed header height in px (py-5 × 2 + content ≈ 60px).
-const HEADER_H = 64;
+
+// Header bottom ≈ 64px. We fire 80px before the section reaches that edge.
+const TRIGGER_PX = 64 + 80; // 144 px from viewport top
 
 export default function App() {
   const [headerSolid, setHeaderSolid] = useState(false);
   const [showTop,     setShowTop]     = useState(false);
 
+  // ── IntersectionObserver: header background ────────────────────────────
   useEffect(() => {
-    const onScroll = () => {
-      // Back-to-top button: show after 70% of first viewport height
-      setShowTop(window.scrollY > window.innerHeight * 0.7);
+    const active = new Set<string>();
+    let io: IntersectionObserver | null = null;
 
-      // Header background: solid when any cream section overlaps the header band
-      const overCream = CREAM_IDS.some(id => {
+    const mount = () => {
+      io?.disconnect();
+      active.clear();
+
+      io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(({ target, isIntersecting }) => {
+            isIntersecting ? active.add(target.id) : active.delete(target.id);
+          });
+          setHeaderSolid(active.size > 0);
+        },
+        {
+          root: null,
+          // Shrink the observable area to a TRIGGER_PX-tall band at the top.
+          // Any cream section with its top inside [0, TRIGGER_PX] fires true.
+          rootMargin: `0px 0px ${-(window.innerHeight - TRIGGER_PX)}px 0px`,
+          threshold: 0,
+        },
+      );
+
+      CREAM_IDS.forEach(id => {
         const el = document.getElementById(id);
-        if (!el) return false;
-        const { top, bottom } = el.getBoundingClientRect();
-        return top <= HEADER_H && bottom > 0;
+        if (el) io!.observe(el);
       });
-      setHeaderSolid(overCream);
     };
 
-    onScroll(); // evaluate immediately on mount
+    mount();
+    window.addEventListener('resize', mount);
+    return () => {
+      io?.disconnect();
+      window.removeEventListener('resize', mount);
+    };
+  }, []);
+
+  // ── Scroll listener: back-to-top button ───────────────────────────────
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > window.innerHeight * 0.7);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -57,8 +94,8 @@ export default function App() {
   return (
     <>
       {/*
-        Fixed header — pointer-events-none on the wrapper so it doesn't
-        swallow clicks on the hero video; interactive elements opt back in.
+        Fixed header — pointer-events-none on the wrapper so it never
+        swallows clicks on the hero video; children opt back in.
       */}
       <header
         className={[
@@ -68,8 +105,26 @@ export default function App() {
           headerSolid ? 'bg-bg' : 'bg-transparent',
         ].join(' ')}
       >
-        {/* Logo slot — empty; monogram will be placed here later */}
-        <div className="w-8 h-8" aria-hidden="true" />
+        {/*
+          Monogram logo — /public/monogram.png (40px height).
+          The header is always dark behind the logo:
+            transparent state → logo sits over the dark hero/work sections
+            solid state       → logo sits over explicit bg-bg (#0A0A0A)
+          If the PNG is a light mark on a transparent background it will
+          be legible in both states with no filter needed. If it appears
+          invisible, add className="... brightness-0 invert" to force white.
+        */}
+        <a
+          href="#"
+          aria-label="Feudal Somerville"
+          className="pointer-events-auto opacity-85 hover:opacity-100 transition-opacity duration-200"
+        >
+          <img
+            src="/monogram.png"
+            alt="Feudal Somerville"
+            className="h-10 w-auto"
+          />
+        </a>
 
         <nav className="pointer-events-auto flex items-center gap-6 md:gap-9">
           {NAV_LINKS.map(({ label, href }) => (
