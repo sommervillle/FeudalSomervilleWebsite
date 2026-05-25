@@ -9,9 +9,8 @@ export default {
         muted: '#888888',
       },
       fontFamily: {
-        // Grotesk system stack — swap for real typeface later
-        sans:    ['-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'Arial', 'sans-serif'],
-        display: ['-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        sans:    ['Geist', '-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        display: ['Geist', '-apple-system', 'BlinkMacSystemFont', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
     },
   },
