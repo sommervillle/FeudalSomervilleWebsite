@@ -36,7 +36,13 @@ export default function App() {
 
     const io = new IntersectionObserver(
       ([entry]) => setHeaderSolid(!entry.isIntersecting),
-      { threshold: 0 },
+      {
+        threshold: 0,
+        // Fire ~50px before the hero fully exits the viewport top,
+        // so the header is already solid before any hero content
+        // becomes visible behind the taller (80px logo) nav bar.
+        rootMargin: '-50px 0px 0px 0px',
+      },
     );
 
     io.observe(hero);
