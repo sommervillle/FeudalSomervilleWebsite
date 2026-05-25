@@ -1,9 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [],
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        bg: '#0A0A0A',
+        fg: '#F2F1ED',
+        muted: '#888888',
+      },
+    },
   },
   plugins: [],
 }
-
