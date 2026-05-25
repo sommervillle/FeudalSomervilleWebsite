@@ -1,5 +1,6 @@
 /*
-  WorkGrid — full-bleed horizontal strips, one per project, 50 vh each.
+  WorkGrid — full-bleed horizontal strips, one per project.
+  Each strip uses a 21:9 cinematic aspect ratio (letterbox film frame).
   A 12px cream (bg-fg) bar sits between every pair of adjacent strips —
   acts as a visual separator without breaking the continuous vertical scroll.
   Hover: dark overlay + title/meta slide up from bottom-left.
@@ -22,8 +23,8 @@ export default function WorkGrid() {
         <Fragment key={i}>
 
           <article
-            className="relative w-full overflow-hidden group cursor-pointer"
-            style={{ height: '50vh', backgroundColor: shade }}
+            className="relative w-full aspect-[21/9] overflow-hidden group cursor-pointer"
+            style={{ backgroundColor: shade }}
           >
             {/* Placeholder bg — subtle zoom on hover mimics video lift */}
             <div
