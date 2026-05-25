@@ -27,6 +27,7 @@ const NAV_LINKS = [
 export default function App() {
   const [headerSolid, setHeaderSolid] = useState(false);
   const [showTop,     setShowTop]     = useState(false);
+  const [menuOpen,    setMenuOpen]    = useState(false);
 
   // ── IntersectionObserver: header background ────────────────────────────
   // Transparent while Hero intersects the viewport; solid once it's gone.
@@ -92,7 +93,8 @@ export default function App() {
             />
           </a>
 
-          <nav className="pointer-events-auto flex items-center gap-6 md:gap-9">
+          {/* Desktop nav — horizontal, md and above */}
+          <nav className="pointer-events-auto hidden md:flex items-center gap-6 md:gap-9">
             {NAV_LINKS.map(({ label, href }) => (
               <a
                 key={label}
@@ -103,8 +105,65 @@ export default function App() {
               </a>
             ))}
           </nav>
+
+          {/* Mobile burger — below md only. Three thin lines, no box. */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            className="pointer-events-auto md:hidden flex flex-col justify-center gap-[5px] p-2 -mr-2 text-fg"
+          >
+            <span className="block w-6 h-px bg-current" />
+            <span className="block w-6 h-px bg-current" />
+            <span className="block w-6 h-px bg-current" />
+          </button>
         </div>
       </header>
+
+      {/*
+        Mobile overlay menu — full viewport, solid bg, stacked nav items.
+        Hidden on md+ in case state is somehow true at that breakpoint.
+      */}
+      <div
+        className={[
+          'fixed inset-0 z-[60] md:hidden bg-bg',
+          'transition-opacity duration-200',
+          menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+        ].join(' ')}
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!menuOpen}
+      >
+        {/* Close (X) — top-right */}
+        <button
+          onClick={() => setMenuOpen(false)}
+          aria-label="Close menu"
+          className="absolute top-5 right-6 p-2 text-fg"
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path
+              d="M3 3L19 19M19 3L3 19"
+              stroke="currentColor"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+
+        {/* Stacked nav — centred vertically and horizontally */}
+        <nav className="h-full w-full flex flex-col items-center justify-center gap-10">
+          {NAV_LINKS.map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              onClick={() => setMenuOpen(false)}
+              className="text-fg text-2xl font-light tracking-wide hover:text-fg/70 transition-colors duration-200"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+      </div>
 
       <main>
         <Hero />
