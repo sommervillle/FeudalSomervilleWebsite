@@ -4,6 +4,7 @@
 
 @layer base {
   html {
+    scroll-behavior: smooth;
     background-color: #0A0A0A;
     color: #F2F1ED;
     -webkit-font-smoothing: antialiased;

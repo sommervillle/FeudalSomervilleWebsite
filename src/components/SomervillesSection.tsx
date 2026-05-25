@@ -1,19 +1,35 @@
+/*
+  Somervilles — flagship series section.
+  Visually distinct from the work grid: full-width, generous height,
+  large display heading, restrained description.
+*/
 export default function SomervillesSection() {
   return (
-    <section id="somervilles" className="bg-bg px-6 py-24 border-t border-neutral-900">
-      <h2 className="text-muted text-xs tracking-widest uppercase mb-6">Somervilles</h2>
-      <div className="max-w-2xl">
-        <p className="text-fg text-xl font-light leading-relaxed">
-          A serialised cinematic series exploring a thousand years of family history
-          through hybrid 3D and AI production.
-        </p>
-        <a
-          href="#"
-          className="inline-block mt-8 text-muted text-xs tracking-widest uppercase hover:text-fg transition-colors"
-        >
-          View Series &rarr;
-        </a>
-      </div>
+    <section
+      id="somervilles"
+      className="bg-bg border-t border-white/[0.06] px-6 md:px-10 py-32 md:py-48"
+    >
+
+      <p className="text-muted text-[11px] tracking-[0.28em] uppercase mb-16">
+        Ongoing Series
+      </p>
+
+      <h2 className="font-display text-fg text-[clamp(3rem,10vw,9rem)] font-light tracking-[-0.03em] leading-none">
+        Somervilles
+      </h2>
+
+      <p className="text-muted text-sm md:text-base font-light leading-relaxed max-w-sm mt-10">
+        A serialised cinematic series exploring a thousand years of family
+        history through hybrid 3D and AI production.
+      </p>
+
+      <a
+        href="#"
+        className="inline-block mt-14 text-muted text-[11px] tracking-[0.28em] uppercase hover:text-fg transition-colors duration-200"
+      >
+        View Series &rarr;
+      </a>
+
     </section>
   );
 }

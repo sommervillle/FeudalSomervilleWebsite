@@ -1,28 +1,47 @@
+/*
+  Footer — contact only. Email as mailto, minimal social links, closing monogram.
+  No CTAs, no marketing, no services.
+*/
 export default function Footer() {
   return (
-    <footer id="contact" className="bg-bg px-6 py-24 border-t border-neutral-900">
-      <div className="flex flex-col gap-6">
+    <footer
+      id="contact"
+      className="bg-bg border-t border-white/[0.06] px-6 md:px-10 py-24 md:py-32 flex flex-col md:flex-row md:items-end md:justify-between gap-16"
+    >
+
+      {/* Contact + socials */}
+      <div className="space-y-10">
         <a
           href="mailto:FeudalProtocol@protonmail.com"
-          className="text-fg text-sm tracking-wide hover:text-muted transition-colors"
+          className="block text-fg text-sm font-light tracking-wide hover:text-muted transition-colors duration-200"
         >
           FeudalProtocol@protonmail.com
         </a>
-        <div className="flex gap-6">
-          <a href="#" className="text-muted text-xs tracking-widest uppercase hover:text-fg transition-colors">
-            Instagram
-          </a>
-          <a href="#" className="text-muted text-xs tracking-widest uppercase hover:text-fg transition-colors">
-            Vimeo
-          </a>
-          <a href="#" className="text-muted text-xs tracking-widest uppercase hover:text-fg transition-colors">
-            YouTube
-          </a>
-        </div>
-        <div className="mt-8">
-          <img src="/assets/monogram.svg" alt="" width={32} height={32} className="opacity-40" />
+
+        <div className="flex gap-8">
+          {(['Instagram', 'Vimeo', 'YouTube'] as const).map((label) => (
+            <a
+              key={label}
+              href="#"
+              className="text-muted text-[11px] tracking-[0.22em] uppercase hover:text-fg transition-colors duration-200"
+            >
+              {label}
+            </a>
+          ))}
         </div>
       </div>
+
+      {/* Closing monogram */}
+      <div className="self-end md:self-auto">
+        <img
+          src="/assets/monogram.svg"
+          alt=""
+          width={28}
+          height={28}
+          className="opacity-20"
+        />
+      </div>
+
     </footer>
   );
 }
