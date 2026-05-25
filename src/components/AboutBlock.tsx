@@ -18,10 +18,10 @@ export default function AboutBlock() {
           <p className="text-bg/60 text-lg font-medium leading-none">About</p>
           <p className="text-bg/60 text-lg font-medium mt-2 mb-6 leading-none">-</p>
           <p className="text-bg/75 text-sm font-medium leading-tight">
-            Feudal Somerville is a director and visual artist working at the
-            intersection of high-end 3D craft and AI-augmented production.
-            The work sits between cinema and commercial — authored, not
-            assembled.
+            Feudal is a director and visual artist based in the North of
+            England. A Mill alumnus, working at the intersection of high-end
+            3D craft and AI-augmented production, blending traditional cinema
+            with commercial pipelines.
           </p>
         </div>
 
