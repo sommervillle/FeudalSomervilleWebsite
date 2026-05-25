@@ -42,7 +42,7 @@ export default function App() {
 
     const io = new IntersectionObserver(
       ([entry]) => setHeaderSolid(!entry.isIntersecting),
-      { threshold: 0, rootMargin: '-90px 0px 0px 0px' },
+      { threshold: 0, rootMargin: '-150px 0px 0px 0px' },
     );
 
     io.observe(hero);
