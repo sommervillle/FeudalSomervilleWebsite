@@ -29,31 +29,23 @@ export default function App() {
   const [showTop,     setShowTop]     = useState(false);
 
   // ── IntersectionObserver: header background ────────────────────────────
-  // Solid the moment any pixel of AboutBlock enters the viewport (scrolling
-  // down). Stays solid for the rest of the page. Only resets to transparent
-  // when the user scrolls all the way back up so AboutBlock is below the fold.
-  //
-  // Two cases for isIntersecting = false:
-  //   top > 0  → AboutBlock is still below the viewport (user back in Hero) → transparent
-  //   top ≤ 0  → AboutBlock exited upward (user scrolled past it)           → stay solid
+  // Transparent while Hero intersects the viewport; solid once it's gone.
+  // rootMargin '-90px 0px 0px 0px' shrinks the effective root 90px from the
+  // top, so the switch fires when the hero's bottom is still 90px inside the
+  // viewport — well before any hero content clears the header visually.
+  // Because the Hero only ever lives at the top of the page, isIntersecting
+  // naturally stays false (solid) for the entire rest of the scroll and
+  // resets to true only if the user scrolls back up into the hero.
   useEffect(() => {
-    const about = document.getElementById('about');
-    if (!about) return;
+    const hero = document.getElementById('hero');
+    if (!hero) return;
 
     const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHeaderSolid(true);
-        } else if (entry.boundingClientRect.top > 0) {
-          // AboutBlock is below the viewport — user is back in the Hero
-          setHeaderSolid(false);
-        }
-        // top ≤ 0: AboutBlock scrolled off the top — user is below it, keep solid
-      },
-      { threshold: 0 },
+      ([entry]) => setHeaderSolid(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-90px 0px 0px 0px' },
     );
 
-    io.observe(about);
+    io.observe(hero);
     return () => io.disconnect();
   }, []);
 
