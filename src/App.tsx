@@ -30,15 +30,27 @@ export default function App() {
 
   // ── IntersectionObserver: header background ────────────────────────────
   // Solid the moment any pixel of AboutBlock enters the viewport (scrolling
-  // down); transparent again when AboutBlock fully exits below the fold
-  // (user scrolled back up into the Hero).
+  // down). Stays solid for the rest of the page. Only resets to transparent
+  // when the user scrolls all the way back up so AboutBlock is below the fold.
+  //
+  // Two cases for isIntersecting = false:
+  //   top > 0  → AboutBlock is still below the viewport (user back in Hero) → transparent
+  //   top ≤ 0  → AboutBlock exited upward (user scrolled past it)           → stay solid
   useEffect(() => {
     const about = document.getElementById('about');
     if (!about) return;
 
     const io = new IntersectionObserver(
-      ([entry]) => setHeaderSolid(entry.isIntersecting),
-      { threshold: 0, rootMargin: '0px 0px 0px 0px' },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHeaderSolid(true);
+        } else if (entry.boundingClientRect.top > 0) {
+          // AboutBlock is below the viewport — user is back in the Hero
+          setHeaderSolid(false);
+        }
+        // top ≤ 0: AboutBlock scrolled off the top — user is below it, keep solid
+      },
+      { threshold: 0 },
     );
 
     io.observe(about);
