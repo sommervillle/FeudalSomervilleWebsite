@@ -1,32 +1,61 @@
+/*
+  Hero — full-viewport section, ready to host a <video> element.
+  Centered content: tagline + thin-bordered showreel CTA.
+  Down-chevron replaces the old "SCROLL" text indicator.
+  No name/subtitle in this section — identity lives in the fixed nav logo.
+*/
 export default function Hero() {
   return (
-    <section id="hero" className="relative w-full h-screen overflow-hidden bg-bg">
+    <section id="hero" className="relative w-full h-screen overflow-hidden bg-[#0e0e0e]">
 
-      {/* ── Video placeholder ── */}
-      {/*
-        Replace this div with a <video autoPlay muted loop playsInline>
-        once the showreel is available.
-      */}
-      <div className="absolute inset-0 bg-[#0e0e0e]">
-        {/* Vignette — helps text read against any future video */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent" />
-      </div>
+      {/* ── Video placeholder ─────────────────────────────────────────────
+          Swap this div for:
+            <video
+              className="absolute inset-0 w-full h-full object-cover"
+              autoPlay muted loop playsInline
+              src="https://…/showreel.mp4"
+            />
+          The vignette divs below sit on top of it in both cases.
+      ──────────────────────────────────────────────────────────────────── */}
+      <div className="absolute inset-0 bg-[#0e0e0e]" />
 
-      {/* ── Name + role — bottom-left ── */}
-      <div className="absolute bottom-10 left-6 md:left-10 z-10">
-        <h1 className="font-display text-fg text-[clamp(2rem,6vw,5rem)] font-light tracking-[-0.02em] leading-none">
-          Feudal Somerville
-        </h1>
-        <p className="text-muted text-[11px] tracking-[0.28em] uppercase mt-4 font-sans">
-          Director &amp; Visual Artist
+      {/* Vignette layers — ensure legibility over any future video content */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30 pointer-events-none" />
+
+      {/* ── Centered hero content ── */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6 text-center">
+
+        <p className="text-fg/75 text-[13px] md:text-sm font-light tracking-[0.06em] leading-relaxed max-w-xs md:max-w-sm">
+          A serialised exploration of family, history, and motion
         </p>
+
+        <a
+          href="#work"
+          className="mt-9 inline-flex items-center justify-center px-9 py-[11px] border border-fg/30 text-fg/80 text-[10px] tracking-[0.35em] uppercase font-light hover:border-fg/60 hover:text-fg hover:bg-fg/[0.04] transition-all duration-300"
+        >
+          View the Showreel
+        </a>
+
       </div>
 
-      {/* ── Scroll nudge — bottom-centre, desktop only ── */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 hidden md:flex flex-col items-center gap-2">
-        <span className="text-muted/60 text-[9px] tracking-[0.3em] uppercase">Scroll</span>
-        <div className="w-px h-8 bg-gradient-to-b from-muted/40 to-transparent" />
+      {/* ── Chevron down — bottom-centre ── */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <svg
+          width="16"
+          height="9"
+          viewBox="0 0 16 9"
+          fill="none"
+          aria-hidden="true"
+          className="text-fg/35"
+        >
+          <path
+            d="M1 1L8 8L15 1"
+            stroke="currentColor"
+            strokeWidth="0.85"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </div>
 
     </section>
