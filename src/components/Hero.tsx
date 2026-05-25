@@ -1,8 +1,6 @@
 /*
   Hero — full-viewport section, ready to host a <video> element.
-  Centered content: tagline + thin-bordered showreel CTA.
-  Down-chevron replaces the old "SCROLL" text indicator.
-  No name/subtitle in this section — identity lives in the fixed nav logo.
+  CTA button bottom-left; chevron centred at bottom.
 */
 export default function Hero() {
   return (
@@ -19,38 +17,26 @@ export default function Hero() {
       ──────────────────────────────────────────────────────────────────── */}
       <div className="absolute inset-0 bg-[#0e0e0e]" />
 
-      {/* Vignette layers — ensure legibility over any future video content */}
+      {/* Vignette — legibility over future video */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30 pointer-events-none" />
 
-      {/* ── Centered hero content ── */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6 text-center">
-
-        <p className="text-fg/75 text-[13px] md:text-sm font-light tracking-[0.06em] leading-relaxed max-w-xs md:max-w-sm">
-          A serialised exploration of family, history, and motion
-        </p>
-
+      {/* ── VIEW THE SHOWREEL — bottom-left ── */}
+      <div className="absolute bottom-[100px] left-[100px] z-10">
         <a
           href="#work"
-          className="mt-9 inline-flex items-center justify-center px-9 py-[11px] border border-fg/30 text-fg/80 text-[10px] tracking-[0.35em] uppercase font-light hover:border-fg/60 hover:text-fg hover:bg-fg/[0.04] transition-all duration-300"
+          className="inline-flex items-center justify-center px-9 py-[11px] border border-fg/30 text-fg/80 text-[10px] tracking-[0.35em] uppercase font-light hover:border-fg/60 hover:text-fg hover:bg-fg/[0.04] transition-all duration-300"
         >
           View the Showreel
         </a>
-
       </div>
 
-      {/* ── Chevron down — bottom-centre, scrolls to AboutBlock on click ── */}
+      {/* ── Chevron down — bottom-centre ── */}
       <button
         onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
         aria-label="Scroll to next section"
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
       >
-        <svg
-          width="16"
-          height="9"
-          viewBox="0 0 16 9"
-          fill="none"
-          aria-hidden="true"
-        >
+        <svg width="16" height="9" viewBox="0 0 16 9" fill="none" aria-hidden="true">
           <path
             d="M1 1L8 8L15 1"
             stroke="currentColor"
