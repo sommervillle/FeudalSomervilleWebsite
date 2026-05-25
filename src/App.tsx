@@ -10,21 +10,10 @@ import FooterBlock from './components/FooterBlock';
                SomervillesSection (dark) → FooterBlock (cream)
 
   Header behaviour:
-    - Transparent when floating over any dark section
-    - Solid bg-bg (#0A0A0A) when a cream section is approaching or behind the header
+    - Transparent while the Hero is intersecting the viewport (user is in the hero)
+    - Solid bg-bg (#0A0A0A) once the user has scrolled past the Hero
     - Smooth 200ms transition-colors
-
-  Detection strategy — IntersectionObserver, not a scroll listener:
-    We create an effective observation zone of exactly TRIGGER_PX height
-    at the top of the viewport by setting a large negative rootMargin on
-    the bottom. A cream section fires isIntersecting=true the moment its
-    top edge enters that zone (80px before it reaches the actual header
-    bottom), and false once its bottom exits upward.
-    A Set tracks which cream sections are currently active so the state
-    is correct even when two cream sections are simultaneously near the
-    header (e.g. on a very short viewport).
-    The observer is recreated on window resize because rootMargin values
-    are in px and depend on window.innerHeight.
+    - Single IntersectionObserver on #hero; no per-section switching
 */
 
 const NAV_LINKS = [
@@ -35,53 +24,23 @@ const NAV_LINKS = [
   { label: 'Contact',     href: '#footerblock' },
 ] as const;
 
-// Cream-background section IDs — header goes solid when any is near the top.
-const CREAM_IDS = ['about', 'footerblock'] as const;
-
-// Header bottom ≈ 64px. We fire 80px before the section reaches that edge.
-const TRIGGER_PX = 64 + 80; // 144 px from viewport top
-
 export default function App() {
   const [headerSolid, setHeaderSolid] = useState(false);
   const [showTop,     setShowTop]     = useState(false);
 
   // ── IntersectionObserver: header background ────────────────────────────
+  // Transparent while any part of Hero is visible; solid once scrolled past.
   useEffect(() => {
-    const active = new Set<string>();
-    let io: IntersectionObserver | null = null;
+    const hero = document.getElementById('hero');
+    if (!hero) return;
 
-    const mount = () => {
-      io?.disconnect();
-      active.clear();
+    const io = new IntersectionObserver(
+      ([entry]) => setHeaderSolid(!entry.isIntersecting),
+      { threshold: 0 },
+    );
 
-      io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach(({ target, isIntersecting }) => {
-            isIntersecting ? active.add(target.id) : active.delete(target.id);
-          });
-          setHeaderSolid(active.size > 0);
-        },
-        {
-          root: null,
-          // Shrink the observable area to a TRIGGER_PX-tall band at the top.
-          // Any cream section with its top inside [0, TRIGGER_PX] fires true.
-          rootMargin: `0px 0px ${-(window.innerHeight - TRIGGER_PX)}px 0px`,
-          threshold: 0,
-        },
-      );
-
-      CREAM_IDS.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) io!.observe(el);
-      });
-    };
-
-    mount();
-    window.addEventListener('resize', mount);
-    return () => {
-      io?.disconnect();
-      window.removeEventListener('resize', mount);
-    };
+    io.observe(hero);
+    return () => io.disconnect();
   }, []);
 
   // ── Scroll listener: back-to-top button ───────────────────────────────
