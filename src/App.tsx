@@ -29,23 +29,19 @@ export default function App() {
   const [showTop,     setShowTop]     = useState(false);
 
   // ── IntersectionObserver: header background ────────────────────────────
-  // Transparent while any part of Hero is visible; solid once scrolled past.
+  // Solid the moment any pixel of AboutBlock enters the viewport (scrolling
+  // down); transparent again when AboutBlock fully exits below the fold
+  // (user scrolled back up into the Hero).
   useEffect(() => {
-    const hero = document.getElementById('hero');
-    if (!hero) return;
+    const about = document.getElementById('about');
+    if (!about) return;
 
     const io = new IntersectionObserver(
-      ([entry]) => setHeaderSolid(!entry.isIntersecting),
-      {
-        threshold: 0,
-        // Fire ~50px before the hero fully exits the viewport top,
-        // so the header is already solid before any hero content
-        // becomes visible behind the taller (80px logo) nav bar.
-        rootMargin: '-130px 0px 0px 0px',
-      },
+      ([entry]) => setHeaderSolid(entry.isIntersecting),
+      { threshold: 0, rootMargin: '0px 0px 0px 0px' },
     );
 
-    io.observe(hero);
+    io.observe(about);
     return () => io.disconnect();
   }, []);
 
