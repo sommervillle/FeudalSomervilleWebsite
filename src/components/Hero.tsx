@@ -19,19 +19,27 @@ export default function Hero() {
       {/* Vignette — legibility over future video */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30 pointer-events-none" />
 
-      {/* VIEW THE SHOWREEL — bottom-left, reveals on mount */}
+      {/*
+        VIEW THE SHOWREEL — bottom-left, reveals on mount.
+        Mobile keeps the 100px-from-edge positioning. Desktop
+        (md+) stretches the wrapper edge-to-edge and centres an
+        inner max-w-5xl container, so the button's left edge
+        aligns with the AboutBlock columns' left edge.
+      */}
       <motion.div
-        className="absolute bottom-[100px] left-[100px] z-10"
+        className="absolute bottom-[100px] inset-x-0 z-10 px-[100px] md:px-10 pointer-events-none"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: DURATION_MEDIUM, ease: EASE_OUT }}
       >
-        <a
-          href="#work"
-          className="inline-flex items-center justify-center px-9 py-[11px] border border-fg/30 text-fg/80 text-[10px] tracking-[0.35em] uppercase font-light hover:border-fg/60 hover:text-fg hover:bg-fg/[0.04] transition-all duration-300"
-        >
-          View the Showreel
-        </a>
+        <div className="md:max-w-5xl md:mx-auto">
+          <a
+            href="#work"
+            className="pointer-events-auto inline-flex items-center justify-center px-9 py-[11px] border border-fg/30 text-fg/80 text-[10px] tracking-[0.35em] uppercase font-light hover:border-fg/60 hover:text-fg hover:bg-fg/[0.04] transition-all duration-300"
+          >
+            View the Showreel
+          </a>
+        </div>
       </motion.div>
 
       {/*
