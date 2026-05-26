@@ -4,11 +4,10 @@
   same visual system.
 
   Structure:
-    1. Page heading       — "Feudal Somerville", large
+    1. Biography          — eyebrow / large heading / paragraph
     2. Services           — label / dash / vertical list
     3. Connect            — label / dash / contact paragraph
-    4. Biography          — eyebrow / large heading / paragraph
-    5. Selected Clients   — label / dash / placeholder
+    4. Selected Clients   — label / dash / placeholder
 */
 
 const services = [
@@ -47,13 +46,24 @@ export default function Info() {
   return (
     <section className="bg-bg min-h-screen px-6 md:px-10 pt-40 md:pt-48 pb-32 md:pb-48">
       <div className="max-w-5xl mx-auto">
-
-        {/* 1. Page heading */}
-        <h1 className="text-fg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-24 md:mb-32">
-          Feudal Somerville
-        </h1>
-
         <div className="space-y-24 md:space-y-32">
+
+          {/* 1. Biography — full-width, large heading. First section. */}
+          <div>
+            <p className="text-fg/40 text-[11px] tracking-[0.28em] uppercase mb-6">
+              Feudal Somerville
+            </p>
+            <h2 className="text-fg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-10">
+              Biography
+            </h2>
+            <p className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
+              Full biography coming soon. Feudal is a director and visual
+              artist based in the North of England. A Mill alumnus,
+              working at the intersection of high-end 3D craft and
+              AI-augmented production, blending traditional cinema with
+              commercial pipelines.
+            </p>
+          </div>
 
           {/* 2. Services */}
           <Row label="Services">
@@ -83,24 +93,7 @@ export default function Info() {
             </p>
           </Row>
 
-          {/* 4. Biography — full-width, large heading */}
-          <div>
-            <p className="text-fg/40 text-[11px] tracking-[0.28em] uppercase mb-6">
-              Feudal Somerville
-            </p>
-            <h2 className="text-fg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-10">
-              Biography
-            </h2>
-            <p className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
-              Full biography coming soon. Feudal is a director and visual
-              artist based in the North of England. A Mill alumnus,
-              working at the intersection of high-end 3D craft and
-              AI-augmented production, blending traditional cinema with
-              commercial pipelines.
-            </p>
-          </div>
-
-          {/* 5. Selected Clients */}
+          {/* 4. Selected Clients */}
           <Row label="Selected Clients">
             <p className="text-fg/80 text-base font-semibold leading-snug">
               Client list coming soon.
