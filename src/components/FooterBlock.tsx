@@ -29,7 +29,7 @@ export default function FooterBlock() {
         {/* Centred tagline */}
         <div className="text-center mb-28 md:mb-36">
           <p className="text-fg/60 text-sm md:text-[15px] font-light tracking-[0.04em]">
-            Always learning. Always building.
+            Old craft. New tools.
           </p>
         </div>
 

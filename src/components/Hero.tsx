@@ -21,13 +21,17 @@ export default function Hero() {
 
       {/*
         VIEW THE SHOWREEL — bottom-left, reveals on mount.
-        Mobile keeps the 100px-from-edge positioning. Desktop
-        (md+) stretches the wrapper edge-to-edge and centres an
-        inner max-w-5xl container, so the button's left edge
-        aligns with the AboutBlock columns' left edge.
+        Mobile: left-[100px] only, no right constraint, so the
+        button keeps its natural content-width — fits "VIEW THE
+        SHOWREEL" on a single line.
+        Desktop (md+): md:left-0 md:right-0 stretches the wrapper
+        edge-to-edge so the inner md:max-w-5xl md:mx-auto can
+        plant the button's left edge on the AboutBlock safe-zone.
       */}
       <motion.div
-        className="absolute bottom-[100px] inset-x-0 z-10 px-[100px] md:px-10 pointer-events-none"
+        className="absolute bottom-[100px] z-10 pointer-events-none
+                   left-[100px]
+                   md:left-0 md:right-0 md:px-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: DURATION_MEDIUM, ease: EASE_OUT }}
