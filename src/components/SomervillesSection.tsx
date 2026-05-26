@@ -3,11 +3,19 @@
   Visually distinct from the work grid: full-width, generous height,
   large display heading, restrained description.
 */
+
+import { motion } from 'framer-motion';
+import { DURATION_MEDIUM, EASE_OUT } from '../motion';
+
 export default function SomervillesSection() {
   return (
-    <section
+    <motion.section
       id="somervilles"
       className="bg-bg border-t border-white/[0.06] px-6 md:px-10 py-32 md:py-48"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10%' }}
+      transition={{ duration: DURATION_MEDIUM, ease: EASE_OUT }}
     >
 
       <p className="text-muted text-[11px] tracking-[0.28em] uppercase mb-16">
@@ -30,6 +38,6 @@ export default function SomervillesSection() {
         View Series &rarr;
       </a>
 
-    </section>
+    </motion.section>
   );
 }

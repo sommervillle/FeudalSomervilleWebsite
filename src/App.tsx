@@ -1,25 +1,57 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Home from './pages/Home';
 import Info from './pages/Info';
 import { scrollToY, scrollToElement } from './smoothScroll';
+import { DURATION_FAST, DURATION_MEDIUM, EASE_OUT, EASE_SMOOTH } from './motion';
 
 /*
   Layout shell: fixed header + routed page content + back-to-top.
 
-  Header background:
-    - On '/'   : transparent while #hero intersects viewport, solid after
-                 (single IntersectionObserver on #hero)
-    - On other routes: always solid bg-bg
-
-  Nav:
-    - Info     → /info
-    - Work     → /  (and scrolls to top if already there)
-    - Contact  → scrolls to #footerblock on '/'; from elsewhere,
-                 navigates to '/' with state.scrollTo='footerblock' and
-                 Home scrolls after mount.
+  Animations live here:
+    - Header bg cross-fades transparent <-> bg-bg via motion.header
+      backgroundColor on EASE_SMOOTH / DURATION_FAST.
+    - Burger icon (3 lines) morphs into an X via per-span y + rotate.
+    - Overlay opens with staggered nav-item rise (variants on motion.nav).
+    - Route changes cross-fade (AnimatePresence + per-page wrapper).
 */
+
+// Overlay nav variants — parent staggers children 70ms.
+const overlayContainer = {
+  hidden: {
+    transition: { staggerChildren: 0, staggerDirection: -1 },
+  },
+  visible: {
+    transition: {
+      delayChildren: 0.05,
+      staggerChildren: 0.07,
+    },
+  },
+};
+
+const overlayItem = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: DURATION_MEDIUM, ease: EASE_OUT },
+  },
+};
+
+// Wrapper that fades each page in/out for the AnimatePresence cross-fade.
+function PageTransition({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function App() {
   const location = useLocation();
@@ -57,7 +89,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close the mobile menu when the route changes (e.g. tapping Info inside it).
+  // Close the mobile menu when the route changes.
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
   const goHomeAndScrollTop = (e: React.MouseEvent) => {
@@ -96,12 +128,13 @@ export default function App() {
 
   return (
     <>
-      <header
-        className={[
-          'fixed top-0 left-0 right-0 z-50 pointer-events-none',
-          'transition-colors duration-200',
-          headerSolid ? 'bg-bg' : 'bg-transparent',
-        ].join(' ')}
+      <motion.header
+        className="fixed top-0 left-0 right-0 z-50 pointer-events-none"
+        initial={false}
+        animate={{
+          backgroundColor: headerSolid ? 'rgba(10, 10, 10, 1)' : 'rgba(10, 10, 10, 0)',
+        }}
+        transition={{ duration: DURATION_FAST, ease: EASE_SMOOTH }}
       >
         <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
           <a
@@ -131,65 +164,92 @@ export default function App() {
             ))}
           </nav>
 
-          {/* Mobile burger — below md only. Three thin lines, no box. */}
+          {/*
+            Mobile burger — below md only. z-[70] so it stays clickable
+            above the overlay (z-[60]) and serves as the close button
+            once morphed into an X. The three spans are absolutely
+            positioned at the button centre and offset/rotated via
+            framer-motion transforms.
+          */}
           <button
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
-            className="pointer-events-auto md:hidden flex flex-col justify-center gap-[5px] p-2 -mr-2 text-fg"
+            className="pointer-events-auto md:hidden relative w-6 h-6 p-2 -mr-2 z-[70] text-fg box-content"
           >
-            <span className="block w-6 h-px bg-current" />
-            <span className="block w-6 h-px bg-current" />
-            <span className="block w-6 h-px bg-current" />
+            <motion.span
+              className="absolute inset-x-0 mx-auto top-1/2 block w-6 h-px bg-current"
+              animate={menuOpen ? { y: 0, rotate: 45 } : { y: -5, rotate: 0 }}
+              transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
+            />
+            <motion.span
+              className="absolute inset-x-0 mx-auto top-1/2 block w-6 h-px bg-current"
+              animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
+              transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
+            />
+            <motion.span
+              className="absolute inset-x-0 mx-auto top-1/2 block w-6 h-px bg-current"
+              animate={menuOpen ? { y: 0, rotate: -45 } : { y: 5, rotate: 0 }}
+              transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
+            />
           </button>
         </div>
-      </header>
+      </motion.header>
 
-      {/* Mobile overlay menu */}
-      <div
-        className={[
-          'fixed inset-0 z-[60] md:hidden bg-bg',
-          'transition-opacity duration-200',
-          menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
-        ].join(' ')}
+      {/*
+        Mobile overlay menu.
+        Container fades in/out; nav items stagger via overlayContainer +
+        overlayItem variants. The morphed burger above (z-[70]) is the
+        close affordance — no separate X needed inside the overlay.
+      */}
+      <motion.div
+        className="fixed inset-0 z-[60] md:hidden bg-bg"
+        initial={false}
+        animate={{ opacity: menuOpen ? 1 : 0 }}
+        transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
+        style={{ pointerEvents: menuOpen ? 'auto' : 'none' }}
         role="dialog"
         aria-modal="true"
         aria-hidden={!menuOpen}
       >
-        <button
-          onClick={() => setMenuOpen(false)}
-          aria-label="Close menu"
-          className="absolute top-5 right-6 p-2 text-fg"
+        <motion.nav
+          className="h-full w-full flex flex-col items-center justify-center gap-10"
+          variants={overlayContainer}
+          initial="hidden"
+          animate={menuOpen ? 'visible' : 'hidden'}
         >
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <path
-              d="M3 3L19 19M19 3L3 19"
-              stroke="currentColor"
-              strokeWidth="1"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-
-        <nav className="h-full w-full flex flex-col items-center justify-center gap-10">
           {navItems.map(({ label, onClick }) => (
-            <a
+            <motion.a
               key={label}
               href="#"
               onClick={onClick}
+              variants={overlayItem}
               className="text-fg text-2xl font-light tracking-wide hover:text-fg/70 transition-colors duration-200"
             >
               {label}
-            </a>
+            </motion.a>
           ))}
-        </nav>
-      </div>
+        </motion.nav>
+      </motion.div>
 
       <main>
-        <Routes>
-          <Route path="/"     element={<Home />} />
-          <Route path="/info" element={<Info />} />
-        </Routes>
+        {/*
+          mode="wait" plays the exit animation of the leaving route
+          before the new route mounts and fades in. Total transition is
+          ~2 * DURATION_FAST.
+        */}
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route
+              path="/"
+              element={<PageTransition><Home /></PageTransition>}
+            />
+            <Route
+              path="/info"
+              element={<PageTransition><Info /></PageTransition>}
+            />
+          </Routes>
+        </AnimatePresence>
       </main>
 
       <button
