@@ -173,16 +173,17 @@ export default function App() {
         its own context via z-50, which would otherwise trap the
         button below the overlay no matter what z-index it claimed).
         The wrapper mirrors the header's container/padding so the
-        button visually aligns with where it sat before; min-h-20
-        matches the logo's h-20 so flex items-center parks the
-        burger at the same vertical centre as the logo.
+        button visually aligns with where it sat before; min-h-[120px]
+        matches the header's full row height (py-5 + h-20 logo) so
+        flex items-center parks the burger at the same vertical
+        centre as the logo's glyph (which is centred within the PNG).
 
         The same button is the close affordance: tapping it while
         open toggles state back, and the three spans morph to/from
         the X. z-[70] keeps it tappable above the overlay (z-[60]).
       */}
       <div className="fixed top-0 left-0 right-0 z-[70] pointer-events-none md:hidden">
-        <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 min-h-20 flex items-center justify-end">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 min-h-[120px] flex items-center justify-end">
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
