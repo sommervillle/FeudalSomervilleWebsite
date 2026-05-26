@@ -27,10 +27,11 @@ export default function AboutBlock() {
             <p className="text-fg/70 text-lg font-medium leading-none">About</p>
             <p className="text-fg/30 text-lg font-medium mt-3 mb-8 leading-none">—</p>
             <p className="text-fg/80 text-base font-semibold leading-snug">
-              Feudal is a director and visual artist based in the North of
-              England. A Mill alumnus, working at the intersection of high-end
-              3D craft and AI-augmented production, blending traditional cinema
-              with commercial pipelines.
+              Feudal is a Visual Artist and Director based in the North of
+              England. Fifteen years of high-end craft in 3D, motion, and
+              post-production. Now combined with AI-augmented pipelines that
+              go where the AI studios stop and traditional agencies haven’t
+              reached.
             </p>
           </div>
 
