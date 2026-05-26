@@ -21,16 +21,20 @@ export default function FooterBlock() {
       viewport={{ once: true, margin: '-10%' }}
       transition={{ duration: DURATION_MEDIUM, ease: EASE_OUT }}
     >
+      {/* max-w-5xl mx-auto: tagline stays centred within the safe
+          zone (== viewport centre on wide screens); copyright /
+          email / socials align with AboutBlock's column edges. */}
+      <div className="max-w-5xl mx-auto">
 
-      {/* Centred tagline */}
-      <div className="text-center mb-28 md:mb-36">
-        <p className="text-fg/60 text-sm md:text-[15px] font-light tracking-[0.04em]">
-          Always learning. Always building.
-        </p>
-      </div>
+        {/* Centred tagline */}
+        <div className="text-center mb-28 md:mb-36">
+          <p className="text-fg/60 text-sm md:text-[15px] font-light tracking-[0.04em]">
+            Always learning. Always building.
+          </p>
+        </div>
 
-      {/* Three-column bottom bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 md:items-end gap-6 md:gap-0 border-t border-fg/10 pt-8">
+        {/* Three-column bottom bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 md:items-end gap-6 md:gap-0 border-t border-fg/10 pt-8">
 
         {/* Copyright — left */}
         <div>
@@ -60,6 +64,8 @@ export default function FooterBlock() {
               {label}
             </a>
           ))}
+        </div>
+
         </div>
 
       </div>

@@ -137,7 +137,17 @@ export default function App() {
         }}
         transition={{ duration: DURATION_FAST, ease: EASE_SMOOTH }}
       >
-        <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
+        {/*
+          Padding now lives on the outer wrapper; the inner row is
+          max-w-5xl mx-auto — same pattern as AboutBlock (section
+          has the gutter, inner block holds the safe-zone). Logo
+          and nav sit on the max-w container's edges on desktop,
+          aligning with the AboutBlock columns. Mobile (max-w-5xl
+          larger than viewport) collapses naturally to the px-6
+          gutter as before.
+        */}
+        <div className="px-6 md:px-10 py-5">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
           <a
             href="/"
             onClick={goHomeAndScrollTop}
@@ -164,6 +174,7 @@ export default function App() {
               </a>
             ))}
           </nav>
+          </div>
         </div>
       </motion.header>
 

@@ -17,27 +17,32 @@ export default function SomervillesSection() {
       viewport={{ once: true, margin: '-10%' }}
       transition={{ duration: DURATION_MEDIUM, ease: EASE_OUT }}
     >
+      {/* max-w-5xl mx-auto puts the content in the same safe-zone
+          as AboutBlock's columns on desktop; collapses naturally
+          on mobile (max-w wider than viewport). */}
+      <div className="max-w-5xl mx-auto">
 
-      <p className="text-muted text-[11px] tracking-[0.28em] uppercase mb-16">
-        Ongoing Series
-      </p>
+        <p className="text-muted text-[11px] tracking-[0.28em] uppercase mb-16">
+          Ongoing Series
+        </p>
 
-      <h2 className="font-display text-fg text-[clamp(3rem,10vw,9rem)] font-light tracking-[-0.03em] leading-none">
-        Somervilles
-      </h2>
+        <h2 className="font-display text-fg text-[clamp(3rem,10vw,9rem)] font-light tracking-[-0.03em] leading-none">
+          Somervilles
+        </h2>
 
-      <p className="text-muted text-sm md:text-base font-light leading-relaxed max-w-sm mt-10">
-        A serialised cinematic series exploring a thousand years of family
-        history through hybrid 3D and AI production.
-      </p>
+        <p className="text-muted text-sm md:text-base font-light leading-relaxed max-w-sm mt-10">
+          A serialised cinematic series exploring a thousand years of family
+          history through hybrid 3D and AI production.
+        </p>
 
-      <a
-        href="#"
-        className="inline-block mt-14 text-muted text-[11px] tracking-[0.28em] uppercase hover:text-fg transition-colors duration-200"
-      >
-        View Series &rarr;
-      </a>
+        <a
+          href="#"
+          className="inline-block mt-14 text-muted text-[11px] tracking-[0.28em] uppercase hover:text-fg transition-colors duration-200"
+        >
+          View Series &rarr;
+        </a>
 
+      </div>
     </motion.section>
   );
 }
