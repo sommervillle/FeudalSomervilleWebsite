@@ -1,43 +1,40 @@
 import { useState, useEffect } from 'react';
-import Hero from './components/Hero';
-import AboutBlock from './components/AboutBlock';
-import WorkGrid from './components/WorkGrid';
-import SomervillesSection from './components/SomervillesSection';
-import FooterBlock from './components/FooterBlock';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import Home from './pages/Home';
+import Info from './pages/Info';
 
 /*
-  Page order:  Hero (dark) → AboutBlock (cream) → WorkGrid (dark) →
-               SomervillesSection (dark) → FooterBlock (cream)
+  Layout shell: fixed header + routed page content + back-to-top.
 
-  Header behaviour:
-    - Transparent while the Hero is intersecting the viewport (user is in the hero)
-    - Solid bg-bg (#0A0A0A) once the user has scrolled past the Hero
-    - Smooth 200ms transition-colors
-    - Single IntersectionObserver on #hero; no per-section switching
+  Header background:
+    - On '/'   : transparent while #hero intersects viewport, solid after
+                 (single IntersectionObserver on #hero)
+    - On other routes: always solid bg-bg
+
+  Nav:
+    - Info     → /info
+    - Work     → /  (and scrolls to top if already there)
+    - Contact  → scrolls to #footerblock on '/'; from elsewhere,
+                 navigates to '/' with state.scrollTo='footerblock' and
+                 Home scrolls after mount.
 */
 
-const NAV_LINKS = [
-  { label: 'Info',        href: '#about'      },
-  { label: 'Work',        href: '#work'        },
-  { label: 'Somervilles', href: '#somervilles' },
-  { label: 'Vimeo',       href: '#'            },
-  { label: 'Contact',     href: '#footerblock' },
-] as const;
-
 export default function App() {
-  const [headerSolid, setHeaderSolid] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHome = location.pathname === '/';
+
+  const [headerSolid, setHeaderSolid] = useState(!isHome);
   const [showTop,     setShowTop]     = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
 
-  // ── IntersectionObserver: header background ────────────────────────────
-  // Transparent while Hero intersects the viewport; solid once it's gone.
-  // rootMargin '-90px 0px 0px 0px' shrinks the effective root 90px from the
-  // top, so the switch fires when the hero's bottom is still 90px inside the
-  // viewport — well before any hero content clears the header visually.
-  // Because the Hero only ever lives at the top of the page, isIntersecting
-  // naturally stays false (solid) for the entire rest of the scroll and
-  // resets to true only if the user scrolls back up into the hero.
+  // Header background: observe Hero only on Home; otherwise stay solid.
   useEffect(() => {
+    if (!isHome) {
+      setHeaderSolid(true);
+      return;
+    }
+
     const hero = document.getElementById('hero');
     if (!hero) return;
 
@@ -48,21 +45,54 @@ export default function App() {
 
     io.observe(hero);
     return () => io.disconnect();
-  }, []);
+  }, [isHome]);
 
-  // ── Scroll listener: back-to-top button ───────────────────────────────
+  // Back-to-top visibility.
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > window.innerHeight * 0.7);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Close the mobile menu when the route changes (e.g. tapping Info inside it).
+  useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  const goHomeAndScrollTop = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    if (isHome) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
+      window.scrollTo({ top: 0 });
+    }
+  };
+
+  const goContact = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    if (isHome) {
+      document.getElementById('footerblock')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/', { state: { scrollTo: 'footerblock' } });
+    }
+  };
+
+  const goInfo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    navigate('/info');
+    window.scrollTo({ top: 0 });
+  };
+
+  const navItems = [
+    { label: 'Info',    onClick: goInfo              },
+    { label: 'Work',    onClick: goHomeAndScrollTop  },
+    { label: 'Contact', onClick: goContact           },
+  ];
+
   return (
     <>
-      {/*
-        Fixed header — pointer-events-none on the wrapper so it never
-        swallows clicks on the hero video; children opt back in.
-      */}
       <header
         className={[
           'fixed top-0 left-0 right-0 z-50 pointer-events-none',
@@ -70,20 +100,11 @@ export default function App() {
           headerSolid ? 'bg-bg' : 'bg-transparent',
         ].join(' ')}
       >
-        {/* max-w-5xl container mirrors AboutBlock — logo left, nav right */}
         <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
-          {/*
-            Monogram logo — /public/monogram.png (40px height).
-            The header is always dark behind the logo:
-              transparent state → logo sits over the dark hero/work sections
-              solid state       → logo sits over explicit bg-bg (#0A0A0A)
-            If the PNG is a light mark on a transparent background it will
-            be legible in both states with no filter needed. If it appears
-            invisible, add className="... brightness-0 invert" to force white.
-          */}
           <a
-            href="#"
-            aria-label="Feudal Somerville"
+            href="/"
+            onClick={goHomeAndScrollTop}
+            aria-label="Feudal Somerville — home"
             className="pointer-events-auto opacity-85 hover:opacity-100 transition-opacity duration-200"
           >
             <img
@@ -95,10 +116,11 @@ export default function App() {
 
           {/* Desktop nav — horizontal, md and above */}
           <nav className="pointer-events-auto hidden md:flex items-center gap-6 md:gap-9">
-            {NAV_LINKS.map(({ label, href }) => (
+            {navItems.map(({ label, onClick }) => (
               <a
                 key={label}
-                href={href}
+                href="#"
+                onClick={onClick}
                 className="text-fg/55 text-[12px] font-light tracking-wide hover:text-fg transition-colors duration-200"
               >
                 {label}
@@ -120,10 +142,7 @@ export default function App() {
         </div>
       </header>
 
-      {/*
-        Mobile overlay menu — full viewport, solid bg, stacked nav items.
-        Hidden on md+ in case state is somehow true at that breakpoint.
-      */}
+      {/* Mobile overlay menu */}
       <div
         className={[
           'fixed inset-0 z-[60] md:hidden bg-bg',
@@ -134,7 +153,6 @@ export default function App() {
         aria-modal="true"
         aria-hidden={!menuOpen}
       >
-        {/* Close (X) — top-right */}
         <button
           onClick={() => setMenuOpen(false)}
           aria-label="Close menu"
@@ -150,13 +168,12 @@ export default function App() {
           </svg>
         </button>
 
-        {/* Stacked nav — centred vertically and horizontally */}
         <nav className="h-full w-full flex flex-col items-center justify-center gap-10">
-          {NAV_LINKS.map(({ label, href }) => (
+          {navItems.map(({ label, onClick }) => (
             <a
               key={label}
-              href={href}
-              onClick={() => setMenuOpen(false)}
+              href="#"
+              onClick={onClick}
               className="text-fg text-2xl font-light tracking-wide hover:text-fg/70 transition-colors duration-200"
             >
               {label}
@@ -166,14 +183,12 @@ export default function App() {
       </div>
 
       <main>
-        <Hero />
-        <AboutBlock />
-        <WorkGrid />
-        <SomervillesSection />
-        <FooterBlock />
+        <Routes>
+          <Route path="/"     element={<Home />} />
+          <Route path="/info" element={<Info />} />
+        </Routes>
       </main>
 
-      {/* Back-to-top — fixed bottom-right, fades in after scrolling past hero */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label="Back to top"
