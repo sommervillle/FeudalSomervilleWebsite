@@ -57,11 +57,16 @@ export default function Info() {
               Biography
             </h2>
             <p className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
-              Full biography coming soon. Feudal is a director and visual
-              artist based in the North of England. A Mill alumnus,
-              working at the intersection of high-end 3D craft and
-              AI-augmented production, blending traditional cinema with
-              commercial pipelines.
+              A visual artist and director with a lifelong interest in
+              history, Feudal began his career as a teenage intern at VTR
+              North and Golden in Leeds, small post houses where the
+              artists and producers took him on and taught him the craft.
+              At seventeen he travelled to the USA to freelance for UVPH
+              and The Mill+ in New York. More senior roles followed at
+              Social, The Mill+, ForPeople, Kenyon Weston, and Heckler.
+              He now works independently, building a hybrid pipeline that
+              combines traditional post-production craft with AI-augmented
+              workflows.
             </p>
           </div>
 
