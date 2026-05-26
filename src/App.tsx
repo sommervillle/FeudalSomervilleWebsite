@@ -129,10 +129,11 @@ export default function App() {
   return (
     <>
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-50 pointer-events-none border-b"
         initial={false}
         animate={{
-          backgroundColor: headerSolid ? 'rgba(10, 10, 10, 1)' : 'rgba(10, 10, 10, 0)',
+          backgroundColor: headerSolid ? 'rgba(20, 20, 20, 1)' : 'rgba(20, 20, 20, 0)',
+          borderBottomColor: headerSolid ? 'rgba(242, 241, 237, 0.1)' : 'rgba(242, 241, 237, 0)',
         }}
         transition={{ duration: DURATION_FAST, ease: EASE_SMOOTH }}
       >
@@ -262,30 +263,19 @@ export default function App() {
       </main>
 
       {/*
-        Back-to-top. mix-blend-difference inverts white against
-        whatever's behind it pixel-by-pixel:
-          - over dark sections (#0A0A0A) -> stays near-white
-          - over cream sections (#F2F1ED) -> appears near-dark
-          - reads on both, and the colour "wipes" across section
-            boundaries as the user scrolls.
-
-        Blend constraints: the button is already a root-level
-        sibling of <main>, so there's no parent background or
-        opacity wrapper above it. The show/hide opacity is set
-        directly on the button (opacity on a *parent* would
-        create a stacking context that breaks the blend). Hover
-        uses opacity 70 -> 100 rather than a colour shift, since
-        a colour shift on a white element is invisible.
+        Back-to-top. Plain cream icon + border; the whole site is
+        now dark so no blend-mode trick is needed for legibility.
+        Hover brightens both colour and border.
       */}
       <button
         onClick={() => scrollToY(0, reduceMotion)}
         aria-label="Back to top"
         className={[
           'fixed bottom-7 right-6 md:right-10 z-50',
-          'w-9 h-9 border border-white flex items-center justify-center',
-          'text-white mix-blend-difference',
-          'transition-opacity duration-300 ease-out',
-          showTop ? 'opacity-70 hover:opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+          'w-9 h-9 border border-fg/20 flex items-center justify-center',
+          'text-fg/40 hover:text-fg hover:border-fg/50',
+          'transition-all duration-300 ease-out',
+          showTop ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         ].join(' ')}
       >
         <svg width="11" height="7" viewBox="0 0 11 7" fill="none" aria-hidden="true">
