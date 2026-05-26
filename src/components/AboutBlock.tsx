@@ -4,13 +4,20 @@
   max-w-5xl container centres content on ultrawide screens.
 */
 
+import { motion } from 'framer-motion';
+import { DURATION_MEDIUM, EASE_OUT } from '../motion';
+
 const socials = ['Instagram', 'Vimeo', 'YouTube'] as const;
 
 export default function AboutBlock() {
   return (
-    <section
+    <motion.section
       id="about"
       className="bg-fg px-6 md:px-10 pt-32 md:pt-48 pb-32 md:pb-48"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10%' }}
+      transition={{ duration: DURATION_MEDIUM, ease: EASE_OUT }}
     >
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-14 md:gap-16">
@@ -58,6 +65,6 @@ export default function AboutBlock() {
 
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

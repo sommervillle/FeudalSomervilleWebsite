@@ -8,6 +8,8 @@
 */
 
 import { Fragment } from 'react';
+import { motion } from 'framer-motion';
+import { DURATION_MEDIUM, EASE_OUT } from '../motion';
 
 const STRIPS = [
   { shade: '#111111', title: 'Project Title', meta: '2024 — Personal'    },
@@ -19,7 +21,13 @@ const STRIPS = [
 
 export default function WorkGrid() {
   return (
-    <section id="work">
+    <motion.section
+      id="work"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10%' }}
+      transition={{ duration: DURATION_MEDIUM, ease: EASE_OUT }}
+    >
       {STRIPS.map(({ shade, title, meta }, i) => (
         <Fragment key={i}>
 
@@ -54,6 +62,6 @@ export default function WorkGrid() {
 
         </Fragment>
       ))}
-    </section>
+    </motion.section>
   );
 }

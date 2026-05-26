@@ -7,13 +7,20 @@
     - Three-column bottom bar: Copyright (left) / Email (centre) / Social (right)
 */
 
+import { motion } from 'framer-motion';
+import { DURATION_MEDIUM, EASE_OUT } from '../motion';
+
 const socials = ['Instagram', 'Vimeo', 'YouTube'] as const;
 
 export default function FooterBlock() {
   return (
-    <footer
+    <motion.footer
       id="footerblock"
       className="bg-fg px-6 md:px-10 pt-28 md:pt-40 pb-10 md:pb-12"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-10%' }}
+      transition={{ duration: DURATION_MEDIUM, ease: EASE_OUT }}
     >
 
       {/* Centred tagline */}
@@ -58,6 +65,6 @@ export default function FooterBlock() {
 
       </div>
 
-    </footer>
+    </motion.footer>
   );
 }
