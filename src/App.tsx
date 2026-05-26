@@ -132,7 +132,7 @@ export default function App() {
         className="fixed top-0 left-0 right-0 z-50 pointer-events-none border-b"
         initial={false}
         animate={{
-          backgroundColor: headerSolid ? 'rgba(20, 20, 20, 1)' : 'rgba(20, 20, 20, 0)',
+          backgroundColor: headerSolid ? 'rgba(5, 5, 5, 1)' : 'rgba(5, 5, 5, 0)',
           borderBottomColor: headerSolid ? 'rgba(242, 241, 237, 0.1)' : 'rgba(242, 241, 237, 0)',
         }}
         transition={{ duration: DURATION_FAST, ease: EASE_SMOOTH }}
