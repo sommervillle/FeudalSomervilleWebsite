@@ -5,9 +5,9 @@
 
   Structure:
     1. Biography          — eyebrow / large heading / paragraph
-    2. Services           — label / dash / vertical list
-    3. Connect            — label / dash / contact paragraph
-    4. Selected Clients   — label / dash / placeholder
+    2. Selected Clients   — label / dash / placeholder
+    3. Services           — label / dash / vertical list
+    4. Connect            — label / dash / contact paragraph
 */
 
 const services = [
@@ -70,7 +70,14 @@ export default function Info() {
             </p>
           </div>
 
-          {/* 2. Services */}
+          {/* 2. Selected Clients */}
+          <Row label="Selected Clients">
+            <p className="text-fg/80 text-base font-semibold leading-snug">
+              Client list coming soon.
+            </p>
+          </Row>
+
+          {/* 3. Services */}
           <Row label="Services">
             <ul className="space-y-2">
               {services.map((s) => (
@@ -84,7 +91,7 @@ export default function Info() {
             </ul>
           </Row>
 
-          {/* 3. Connect */}
+          {/* 4. Connect */}
           <Row label="Connect">
             <p className="text-fg/80 text-base font-semibold leading-snug">
               If you have a scheduling inquiry or wish to chat about an
@@ -95,13 +102,6 @@ export default function Info() {
               >
                 FeudalProtocol@protonmail.com
               </a>
-            </p>
-          </Row>
-
-          {/* 4. Selected Clients */}
-          <Row label="Selected Clients">
-            <p className="text-fg/80 text-base font-semibold leading-snug">
-              Client list coming soon.
             </p>
           </Row>
 
