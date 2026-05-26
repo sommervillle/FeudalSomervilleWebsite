@@ -51,7 +51,7 @@ export default function Hero() {
           }}
         >
           <button
-            onClick={() => scrollToElement('about', 90, reduceMotion)}
+            onClick={() => scrollToElement('about', 40, reduceMotion)}
             aria-label="Scroll to next section"
             className="block p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
           >
