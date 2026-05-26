@@ -1,5 +1,5 @@
 /*
-  Info — cream slab, mirrors AboutBlock's container and label-style
+  Info — dark slab, mirrors AboutBlock's container and label-style
   (column label, dash divider, content) so it reads as part of the
   same visual system.
 
@@ -33,8 +33,8 @@ function Row({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-16">
       <div className="md:col-span-1">
-        <p className="text-bg/70 text-lg font-medium leading-none">{label}</p>
-        <p className="text-bg/30 text-lg font-medium mt-3 leading-none">—</p>
+        <p className="text-fg/70 text-lg font-medium leading-none">{label}</p>
+        <p className="text-fg/30 text-lg font-medium mt-3 leading-none">—</p>
       </div>
       <div className="md:col-span-2">
         {children}
@@ -45,11 +45,11 @@ function Row({
 
 export default function Info() {
   return (
-    <section className="bg-fg min-h-screen px-6 md:px-10 pt-40 md:pt-48 pb-32 md:pb-48">
+    <section className="bg-bg min-h-screen px-6 md:px-10 pt-40 md:pt-48 pb-32 md:pb-48">
       <div className="max-w-5xl mx-auto">
 
         {/* 1. Page heading */}
-        <h1 className="text-bg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-24 md:mb-32">
+        <h1 className="text-fg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-24 md:mb-32">
           Feudal Somerville
         </h1>
 
@@ -61,7 +61,7 @@ export default function Info() {
               {services.map((s) => (
                 <li
                   key={s}
-                  className="text-bg/80 text-base font-semibold leading-snug"
+                  className="text-fg/80 text-base font-semibold leading-snug"
                 >
                   {s}
                 </li>
@@ -71,12 +71,12 @@ export default function Info() {
 
           {/* 3. Connect */}
           <Row label="Connect">
-            <p className="text-bg/80 text-base font-semibold leading-snug">
+            <p className="text-fg/80 text-base font-semibold leading-snug">
               If you have a scheduling inquiry or wish to chat about an
               upcoming project, please contact me at{' '}
               <a
                 href="mailto:FeudalProtocol@protonmail.com"
-                className="underline underline-offset-4 decoration-bg/30 hover:decoration-bg/80 transition-colors duration-200"
+                className="underline underline-offset-4 decoration-fg/30 hover:decoration-fg/80 transition-colors duration-200"
               >
                 FeudalProtocol@protonmail.com
               </a>
@@ -85,13 +85,13 @@ export default function Info() {
 
           {/* 4. Biography — full-width, large heading */}
           <div>
-            <p className="text-bg/40 text-[11px] tracking-[0.28em] uppercase mb-6">
+            <p className="text-fg/40 text-[11px] tracking-[0.28em] uppercase mb-6">
               Feudal Somerville
             </p>
-            <h2 className="text-bg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-10">
+            <h2 className="text-fg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-10">
               Biography
             </h2>
-            <p className="text-bg/80 text-base font-semibold leading-snug max-w-2xl">
+            <p className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
               Full biography coming soon. Feudal is a director and visual
               artist based in the North of England. A Mill alumnus,
               working at the intersection of high-end 3D craft and
@@ -102,7 +102,7 @@ export default function Info() {
 
           {/* 5. Selected Clients */}
           <Row label="Selected Clients">
-            <p className="text-bg/80 text-base font-semibold leading-snug">
+            <p className="text-fg/80 text-base font-semibold leading-snug">
               Client list coming soon.
             </p>
           </Row>
