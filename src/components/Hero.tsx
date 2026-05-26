@@ -35,36 +35,38 @@ export default function Hero() {
       </motion.div>
 
       {/*
-        Chevron — wrapping motion.div handles the infinite drift so the
-        button can keep its -translate-x-1/2 centering CSS without
-        framer-motion clobbering the transform.
+        Chevron — outer div owns horizontal centring via Tailwind's
+        -translate-x-1/2 (a CSS transform). The inner motion.div owns
+        the y-drift; nesting keeps framer-motion's transform from
+        clobbering the centring transform on the same element.
       */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-        animate={{ y: [0, -3, 0] }}
-        transition={{
-          duration: 2,
-          ease: 'easeInOut',
-          repeat: Infinity,
-          repeatType: 'loop',
-        }}
-      >
-        <button
-          onClick={() => scrollToElement('about', 90, reduceMotion)}
-          aria-label="Scroll to next section"
-          className="block p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <motion.div
+          animate={{ y: [0, -3, 0] }}
+          transition={{
+            duration: 2,
+            ease: 'easeInOut',
+            repeat: Infinity,
+            repeatType: 'loop',
+          }}
         >
-          <svg width="16" height="9" viewBox="0 0 16 9" fill="none" aria-hidden="true">
-            <path
-              d="M1 1L8 8L15 1"
-              stroke="currentColor"
-              strokeWidth="0.85"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </motion.div>
+          <button
+            onClick={() => scrollToElement('about', 90, reduceMotion)}
+            aria-label="Scroll to next section"
+            className="block p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
+          >
+            <svg width="16" height="9" viewBox="0 0 16 9" fill="none" aria-hidden="true">
+              <path
+                d="M1 1L8 8L15 1"
+                stroke="currentColor"
+                strokeWidth="0.85"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </motion.div>
+      </div>
 
     </section>
   );

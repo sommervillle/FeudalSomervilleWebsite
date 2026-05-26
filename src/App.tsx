@@ -163,19 +163,28 @@ export default function App() {
               </a>
             ))}
           </nav>
+        </div>
+      </motion.header>
 
-          {/*
-            Mobile burger — below md only. z-[70] so it stays clickable
-            above the overlay (z-[60]) and serves as the close button
-            once morphed into an X. The three spans are absolutely
-            positioned at the button centre and offset/rotated via
-            framer-motion transforms.
-          */}
+      {/*
+        Mobile burger — pulled OUT of the header so its z-[70] is
+        evaluated in the root stacking context (the header creates
+        its own context via z-50, which would otherwise trap the
+        button below the overlay no matter what z-index it claimed).
+        The wrapper mirrors the header's container/padding so the
+        button visually aligns with where it sat before.
+
+        The same button is the close affordance: tapping it while
+        open toggles state back, and the three spans morph to/from
+        the X. z-[70] keeps it tappable above the overlay (z-[60]).
+      */}
+      <div className="fixed top-0 left-0 right-0 z-[70] pointer-events-none md:hidden">
+        <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 flex items-center justify-end">
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
-            className="pointer-events-auto md:hidden relative w-6 h-6 p-2 -mr-2 z-[70] text-fg box-content"
+            className="pointer-events-auto relative w-6 h-6 p-2 -mr-2 text-fg box-content"
           >
             <motion.span
               className="absolute inset-x-0 mx-auto top-1/2 block w-6 h-px bg-current"
@@ -194,7 +203,7 @@ export default function App() {
             />
           </button>
         </div>
-      </motion.header>
+      </div>
 
       {/*
         Mobile overlay menu.
