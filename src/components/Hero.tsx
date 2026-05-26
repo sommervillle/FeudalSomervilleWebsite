@@ -35,11 +35,11 @@ export default function Hero() {
         onClick={() => {
           const target = document.getElementById('about');
           if (!target) return;
-          // Land the cream block's top edge just below the fixed header
-          // (~120px tall: h-20 logo + py-5). 20px of breathing room means
-          // the hero is fully scrolled off and only the cream section
-          // shows beneath the header.
-          const y = target.getBoundingClientRect().top + window.scrollY - 140;
+          // Park the cream section's top edge right at the header bottom
+          // so there's no dark band between the header and the "About"
+          // heading. The cream is clipped by the fixed header for the
+          // top ~30px; visible cream starts immediately below the header.
+          const y = target.getBoundingClientRect().top + window.scrollY - 90;
           window.scrollTo({ top: y, behavior: 'smooth' });
         }}
         aria-label="Scroll to next section"
