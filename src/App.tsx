@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useReducedMotion } from 'framer-motion';
 import Home from './pages/Home';
 import Info from './pages/Info';
+import { scrollToY, scrollToElement } from './smoothScroll';
 
 /*
   Layout shell: fixed header + routed page content + back-to-top.
@@ -23,6 +25,7 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
+  const reduceMotion = useReducedMotion() ?? false;
 
   const [headerSolid, setHeaderSolid] = useState(!isHome);
   const [showTop,     setShowTop]     = useState(false);
@@ -61,7 +64,7 @@ export default function App() {
     e.preventDefault();
     setMenuOpen(false);
     if (isHome) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToY(0, reduceMotion);
     } else {
       navigate('/');
       window.scrollTo({ top: 0 });
@@ -72,7 +75,7 @@ export default function App() {
     e.preventDefault();
     setMenuOpen(false);
     if (isHome) {
-      document.getElementById('footerblock')?.scrollIntoView({ behavior: 'smooth' });
+      scrollToElement('footerblock', 0, reduceMotion);
     } else {
       navigate('/', { state: { scrollTo: 'footerblock' } });
     }
@@ -190,7 +193,7 @@ export default function App() {
       </main>
 
       <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        onClick={() => scrollToY(0, reduceMotion)}
         aria-label="Back to top"
         className={[
           'fixed bottom-7 right-6 md:right-10 z-50',

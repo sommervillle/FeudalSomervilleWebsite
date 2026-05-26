@@ -1,8 +1,14 @@
+import { useReducedMotion } from 'framer-motion';
+import { scrollToElement } from '../smoothScroll';
+
 /*
   Hero — full-viewport section, ready to host a <video> element.
-  CTA button bottom-left; chevron centred at bottom.
+  CTA button bottom-left; chevron centred at bottom uses the
+  site's EASE_SMOOTH cinematic scroll.
 */
 export default function Hero() {
+  const reduceMotion = useReducedMotion() ?? false;
+
   return (
     <section id="hero" className="relative w-full h-screen overflow-hidden bg-[#0e0e0e]">
 
@@ -32,16 +38,7 @@ export default function Hero() {
 
       {/* ── Chevron down — bottom-centre ── */}
       <button
-        onClick={() => {
-          const target = document.getElementById('about');
-          if (!target) return;
-          // Park the cream section's top edge right at the header bottom
-          // so there's no dark band between the header and the "About"
-          // heading. The cream is clipped by the fixed header for the
-          // top ~30px; visible cream starts immediately below the header.
-          const y = target.getBoundingClientRect().top + window.scrollY - 90;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }}
+        onClick={() => scrollToElement('about', 90, reduceMotion)}
         aria-label="Scroll to next section"
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
       >
