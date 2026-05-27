@@ -58,22 +58,47 @@ export default function AboutBlock() {
   const reduceMotion = useReducedMotion() ?? false;
   const [playCount, setPlayCount] = useState(0);
   const hasScrolledIntoView = useRef(false);
-  const sectionRef = useRef<HTMLElement>(null);
+  // chevronInitiated guards the chevron's arrival window. Set
+  // immediately on chevron tap; cleared after the cascade finishes.
+  // While true, the IntersectionObserver path bails — even though
+  // the chevron-driven scroll will move AboutBlock into the IO's
+  // threshold mid-arrival, we don't want IO to fire a second cascade.
+  // hasScrolledIntoView is the persistent once-per-mount gate that
+  // also gets set when the chevron path actually plays the cascade.
+  const chevronInitiated    = useRef(false);
+  const sectionRef          = useRef<HTMLElement>(null);
 
 
-  // Chevron path — always replays. Marking the scroll trigger as
-  // consumed prevents a second fire when the chevron-driven scroll
-  // lands the section in view.
+  // Chevron path. Hero dispatches 'cascade-about' synchronously
+  // on tap, so the listener can set chevronInitiated BEFORE the
+  // scroll moves the section into the IO threshold. The 1s
+  // setTimeout is what defers the actual cascade start until the
+  // smooth scroll has settled. Once playCount bumps and the
+  // cascade is in flight, a second setTimeout clears
+  // chevronInitiated after the cascade completes.
   useEffect(() => {
     const handler = () => {
-      hasScrolledIntoView.current = true;
-      setPlayCount((c) => c + 1);
+      chevronInitiated.current = true;
+
+      window.setTimeout(() => {
+        hasScrolledIntoView.current = true;
+        setPlayCount((c) => c + 1);
+
+        // Clear the flag after the cascade fully completes.
+        // Cascade duration = lines (~13) * CASCADE_STEP + LINE_DURATION
+        // ≈ 13 * 0.08 + 0.8 = 1.84s. +200ms buffer.
+        window.setTimeout(() => {
+          chevronInitiated.current = false;
+        }, 2100);
+      }, 1000);
     };
     window.addEventListener('cascade-about', handler);
     return () => window.removeEventListener('cascade-about', handler);
   }, []);
 
   // Scroll-into-view path — once per mount, threshold ~35%.
+  // Bails if the chevron initiated the current arrival OR the
+  // cascade has already played for this mount.
   useEffect(() => {
     if (hasScrolledIntoView.current) return;
     const el = sectionRef.current;
@@ -81,7 +106,11 @@ export default function AboutBlock() {
 
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasScrolledIntoView.current) {
+        if (
+          entry.isIntersecting &&
+          !chevronInitiated.current &&
+          !hasScrolledIntoView.current
+        ) {
           hasScrolledIntoView.current = true;
           setPlayCount((c) => c + 1);
         }
