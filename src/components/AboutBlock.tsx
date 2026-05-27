@@ -60,7 +60,6 @@ export default function AboutBlock() {
   const hasScrolledIntoView = useRef(false);
   const sectionRef = useRef<HTMLElement>(null);
 
-  const isAnimating = playCount > 0 && !reduceMotion;
 
   // Chevron path — always replays. Marking the scroll trigger as
   // consumed prevents a second fire when the chevron-driven scroll
@@ -93,31 +92,56 @@ export default function AboutBlock() {
     return () => io.disconnect();
   }, []);
 
-  // Per-render counter — cascade() increments per JSX call so
-  // each line gets a monotonically increasing delay in source order.
+  // Cascade prop generator. Three states:
+  //
+  //   1. Reduced-motion: return {} so motion elements render at
+  //      their natural visible state with no transforms. The user
+  //      never sees the cascade.
+  //
+  //   2. Pre-trigger (playCount = 0): return initial AND animate
+  //      both set to the hidden state. Motion elements paint at
+  //      opacity 0 from first render and stay there — no flash of
+  //      visible text in the window between AboutBlock entering
+  //      the viewport and the IntersectionObserver hitting its
+  //      threshold. Using `animate` (not just `initial`) is what
+  //      pins them; framer-motion would otherwise render at the
+  //      animate state if no animate change is implied.
+  //
+  //   3. Triggered (playCount > 0): the wrapping <div key=...>
+  //      has remounted, so the new motion elements mount with
+  //      initial: opacity 0 -> animate: opacity 1, running the
+  //      cascade transition.
   let idx = 0;
   const cascade = (inline = false) => {
-    if (!isAnimating) return {};
+    if (reduceMotion) return {};
+
+    // Hidden state shared by pre-trigger and triggered initial.
+    const hidden = inline
+      ? { opacity: 0, top: 10 }
+      : { opacity: 0, y: 10 };
+    const style  = inline ? { position: 'relative' as const } : undefined;
+
+    if (playCount === 0) {
+      return { initial: hidden, animate: hidden, ...(style ? { style } : {}) };
+    }
+
     const i = idx++;
     const transition = {
       delay: i * CASCADE_STEP,
       duration: LINE_DURATION,
       ease: EASE_OUT,
     };
-    // Inline variant for bio sentence spans — CSS transforms don't
-    // apply to inline non-replaced elements, so animate `top` with
-    // position: relative instead. Same 10px rise visually.
     if (inline) {
       return {
-        initial: { opacity: 0, top: 10 },
-        animate: { opacity: 1, top: 0 },
+        initial:    { opacity: 0, top: 10 },
+        animate:    { opacity: 1, top: 0 },
         transition,
-        style: { position: 'relative' as const },
+        style:      { position: 'relative' as const },
       };
     }
     return {
-      initial: { opacity: 0, y: 10 },
-      animate: { opacity: 1, y: 0 },
+      initial:    { opacity: 0, y: 10 },
+      animate:    { opacity: 1, y: 0 },
       transition,
     };
   };
