@@ -96,18 +96,46 @@ export default function AboutBlock() {
     return () => window.removeEventListener('cascade-about', handler);
   }, []);
 
-  // Scroll-into-view path — once per mount, threshold ~35%.
-  // Bails if the chevron initiated the current arrival OR the
-  // cascade has already played for this mount.
+  // Scroll-into-view path + upward-exit reset.
+  //
+  // One IntersectionObserver handles both:
+  //   - Cascade trigger: intersectionRatio crosses SCROLL_THRESHOLD
+  //     (~35%) while no other path is active or has played.
+  //   - Upward-exit reset: section leaves the viewport with its
+  //     boundingClientRect.top > 0, meaning it's now BELOW the
+  //     viewport — user scrolled back up past it (back toward Hero).
+  //     Reset playCount and hasScrolledIntoView so the next arrival
+  //     can cascade again from the hidden state. Without this,
+  //     content stays at opacity 1 after the first cascade and the
+  //     user sees a flash of fully-visible text during the next
+  //     chevron-driven scroll, before the cascade restart kicks in.
+  //
+  //   Downward exit (top < 0, section above viewport — user
+  //   scrolled past into WorkGrid) is a no-op: content stays
+  //   visible since the user has already seen the cascade and
+  //   moved on.
+  //
+  // Threshold [0, 0.35] = callback fires both when the section
+  // crosses any pixel (entry/exit) and when it crosses the 35%
+  // cascade boundary.
   useEffect(() => {
-    if (hasScrolledIntoView.current) return;
     const el = sectionRef.current;
     if (!el) return;
 
     const io = new IntersectionObserver(
       ([entry]) => {
+        // Upward exit -> reset for re-arrival.
+        if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
+          hasScrolledIntoView.current = false;
+          setPlayCount(0);
+          return;
+        }
+        // Downward exit (top < 0) -> leave content visible.
+        if (!entry.isIntersecting) return;
+
+        // Cascade trigger gate.
         if (
-          entry.isIntersecting &&
+          entry.intersectionRatio >= SCROLL_THRESHOLD &&
           !chevronInitiated.current &&
           !hasScrolledIntoView.current
         ) {
@@ -115,7 +143,7 @@ export default function AboutBlock() {
           setPlayCount((c) => c + 1);
         }
       },
-      { threshold: SCROLL_THRESHOLD },
+      { threshold: [0, SCROLL_THRESHOLD] },
     );
     io.observe(el);
     return () => io.disconnect();
