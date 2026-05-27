@@ -20,6 +20,22 @@ const services = [
   'Director',
 ] as const;
 
+const clients = [
+  'Nike',
+  'Adidas',
+  'Coca-Cola',
+  'Guinness',
+  'Jaguar',
+  'Honda',
+  'HP',
+  'NIO',
+  'Pringles',
+  'Santander',
+  'The King’s Trust',
+  'MrBeast / Feastables',
+  'United Nations',
+] as const;
+
 // Two-column row: narrow label column (matches AboutBlock's first
 // column width on the 3-col grid), wide content column.
 function Row({
@@ -72,9 +88,16 @@ export default function Info() {
 
           {/* 2. Selected Clients */}
           <Row label="Selected Clients">
-            <p className="text-fg/80 text-base font-semibold leading-snug">
-              Client list coming soon.
-            </p>
+            <ul className="space-y-2">
+              {clients.map((c) => (
+                <li
+                  key={c}
+                  className="text-fg/80 text-base font-semibold leading-snug"
+                >
+                  {c}
+                </li>
+              ))}
+            </ul>
           </Row>
 
           {/* 3. Services */}
