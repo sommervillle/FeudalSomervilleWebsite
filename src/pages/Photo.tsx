@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EASE_OUT } from '../motion';
 import Lightbox, { type PhotoData } from '../components/Lightbox';
+import MonogramSkeleton from '../components/MonogramSkeleton';
 
 /*
   Photo — personal photography page.
@@ -41,7 +42,9 @@ export default function Photo() {
 
         {/*
           Mobile grid. -mx-6 cancels the section's px-6 gutter so
-          the cells run edge-to-edge.
+          the cells run edge-to-edge. Each cell is a MonogramSkeleton
+          standing in as a loading placeholder for the future image;
+          the wrapping motion.div owns the cascade reveal and click.
         */}
         <div className="md:hidden -mx-6 grid grid-cols-3 gap-px">
           {PHOTOS.map((_, i) => (
@@ -54,9 +57,11 @@ export default function Photo() {
                 duration: 0.4,
                 ease: EASE_OUT,
               }}
-              className="aspect-square bg-fg/10 cursor-pointer"
+              className="aspect-square cursor-pointer"
               onClick={() => setLightboxIndex(i)}
-            />
+            >
+              <MonogramSkeleton className="w-full h-full" />
+            </motion.div>
           ))}
         </div>
 
