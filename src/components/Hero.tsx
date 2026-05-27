@@ -93,7 +93,13 @@ export default function Hero() {
             }}
           >
             <button
-              onClick={() => scrollToElement('about', 40, reduceMotion)}
+              onClick={() => {
+                // Dispatch first so AboutBlock's listener consumes the
+                // scroll trigger before the IntersectionObserver fires
+                // when the smooth-scroll lands the section in view.
+                window.dispatchEvent(new Event('cascade-about'));
+                scrollToElement('about', 40, reduceMotion);
+              }}
               aria-label="Scroll to next section"
               className="block p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
             >
