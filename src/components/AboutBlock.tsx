@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { DURATION_MEDIUM, EASE_OUT } from '../motion';
+import { EASE_OUT } from '../motion';
 
 /*
   AboutBlock — dark slab, three columns: About / Social / Contact.
@@ -45,7 +45,13 @@ const bioSentences = [
   'Now combined with AI-augmented pipelines that go where the AI studios stop and traditional agencies haven’t reached.',
 ];
 
-const CASCADE_STEP    = 0.03;
+// Slower than /info's cascade (which keeps 0.05 / DURATION_MEDIUM).
+// 0.08 between lines + 0.8s per line gives each line breathing room
+// to be appreciated rather than blurring past. Not promoted into
+// motion.ts since /info deliberately stays on the faster timing —
+// these constants are local to AboutBlock.
+const CASCADE_STEP    = 0.08;
+const LINE_DURATION   = 0.8;
 const SCROLL_THRESHOLD = 0.35;
 
 export default function AboutBlock() {
@@ -95,7 +101,7 @@ export default function AboutBlock() {
     const i = idx++;
     const transition = {
       delay: i * CASCADE_STEP,
-      duration: DURATION_MEDIUM,
+      duration: LINE_DURATION,
       ease: EASE_OUT,
     };
     // Inline variant for bio sentence spans — CSS transforms don't
