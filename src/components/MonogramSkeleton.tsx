@@ -38,12 +38,18 @@ export default function MonogramSkeleton({
     <div
       onClick={onClick}
       className={[
-        // Position deliberately omitted — flex children (the
-        // motion.img) layout independently, so consumers can pass
-        // their own `relative` / `absolute` etc. without fighting
-        // a default. Common patterns: `w-full h-full` to fill a
-        // parent cell, or `absolute inset-0` to overlay one.
-        'bg-fg/5 flex items-center justify-center overflow-hidden',
+        // No default background — consumers paint the cell surface
+        // via className (e.g. `bg-fg/5` for Photo grid cells lifted
+        // off the dark page) or inline style on a parent (e.g.
+        // WorkGrid's alternating per-tile backgroundColor). Keeps
+        // this component a pure 'centred pulsing monogram' layer
+        // that composites on whatever surface sits behind it.
+        //
+        // Position deliberately omitted too — flex children layout
+        // independently, so consumers can pass their own `relative`
+        // / `absolute` etc. Common patterns: `w-full h-full` to fill
+        // a parent cell, or `absolute inset-0` to overlay one.
+        'flex items-center justify-center overflow-hidden',
         onClick ? 'cursor-pointer' : '',
         className,
       ].join(' ')}

@@ -60,7 +60,7 @@ export default function Photo() {
               className="aspect-square cursor-pointer"
               onClick={() => setLightboxIndex(i)}
             >
-              <MonogramSkeleton className="w-full h-full" />
+              <MonogramSkeleton className="w-full h-full bg-fg/5" />
             </motion.div>
           ))}
         </div>
