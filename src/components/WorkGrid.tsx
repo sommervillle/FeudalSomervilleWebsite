@@ -28,8 +28,8 @@ export default function WorkGrid() {
       {STRIPS.map(({ shade, title, meta }, i) => (
         <article
           key={i}
-          className="relative w-full overflow-hidden group cursor-pointer"
-          style={{ height: '75vh', backgroundColor: shade }}
+          className="relative w-full overflow-hidden group cursor-pointer aspect-[16/9] md:aspect-auto md:h-[75vh]"
+          style={{ backgroundColor: shade }}
         >
           {/* Placeholder bg — subtle zoom on hover mimics video lift */}
           <div
