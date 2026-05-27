@@ -7,6 +7,7 @@ import {
   animate,
 } from 'framer-motion';
 import { DURATION_FAST, EASE_OUT } from '../motion';
+import { useBodyScrollLock } from '../useBodyScrollLock';
 
 /*
   Lightbox — mobile fullscreen photo viewer.
@@ -83,6 +84,8 @@ export default function Lightbox({
   onPrev,
   onNext,
 }: LightboxProps) {
+  useBodyScrollLock();
+
   const scale  = useMotionValue(1);
   const photoX = useMotionValue(0);
   const photoY = useMotionValue(0);

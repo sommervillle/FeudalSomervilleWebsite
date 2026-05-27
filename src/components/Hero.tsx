@@ -42,21 +42,21 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30 pointer-events-none" />
 
         {/*
-          SHOWREEL — bottom-left, reveals on mount.
-          Mobile: left-[100px], natural content-width.
-          Desktop (md+): md:left-0 md:right-0 stretches the wrapper
-          edge-to-edge so the inner md:max-w-5xl md:mx-auto plants
-          the button's left edge on the AboutBlock safe-zone.
+          SHOWREEL — bottom anchor.
+          Mobile: wrapper spans the viewport (inset-x-0), inner flex
+          justify-center horizontally centres the button.
+          Desktop (md+): md:px-10 reintroduces the gutter; the inner
+          flips to md:block + md:max-w-5xl md:mx-auto so the button
+          sits at the left edge of the AboutBlock safe-zone, exactly
+          as before.
         */}
         <motion.div
-          className="absolute bottom-[100px] z-10 pointer-events-none
-                     left-[100px]
-                     md:left-0 md:right-0 md:px-10"
+          className="absolute bottom-[100px] inset-x-0 z-10 pointer-events-none md:px-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: DURATION_MEDIUM, ease: EASE_OUT }}
         >
-          <div className="md:max-w-5xl md:mx-auto">
+          <div className="flex justify-center md:block md:max-w-5xl md:mx-auto">
             {/* Mobile: opens the ShowreelLightbox. */}
             <button
               type="button"
