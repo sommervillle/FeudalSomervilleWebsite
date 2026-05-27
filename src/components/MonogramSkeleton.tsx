@@ -38,7 +38,12 @@ export default function MonogramSkeleton({
     <div
       onClick={onClick}
       className={[
-        'relative bg-fg/5 flex items-center justify-center overflow-hidden',
+        // Position deliberately omitted — flex children (the
+        // motion.img) layout independently, so consumers can pass
+        // their own `relative` / `absolute` etc. without fighting
+        // a default. Common patterns: `w-full h-full` to fill a
+        // parent cell, or `absolute inset-0` to overlay one.
+        'bg-fg/5 flex items-center justify-center overflow-hidden',
         onClick ? 'cursor-pointer' : '',
         className,
       ].join(' ')}
