@@ -25,15 +25,15 @@ const clients = [
   'Adidas',
   'Coca-Cola',
   'Guinness',
+  'Ford',
   'Jaguar',
   'Honda',
   'HP',
-  'NIO',
+  'Miro',
+  'Monotype',
   'Pringles',
-  'Santander',
-  'The King’s Trust',
   'MrBeast / Feastables',
-  'United Nations',
+  'The King’s Trust',
 ] as const;
 
 // Two-column row: narrow label column (matches AboutBlock's first
