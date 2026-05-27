@@ -5,36 +5,35 @@ import { EASE_OUT } from '../motion';
 /*
   AboutBlock — dark slab, three columns: About / Social / Contact.
 
-  Cascade behaviour:
-    Every text line (column label, dash, each bio sentence, each
-    social link, contact email) fades in opacity 0->1 + y 10->0
-    (or top 10->0 for inline sentence spans, since CSS transforms
-    have no effect on inline non-replaced elements).
+  Cascade behaviour (single-state version):
+    - Every text line (column label, dash, each bio sentence, each
+      social link, contact email) fades in opacity 0->1 + y 10->0
+      (or top 10->0 for inline sentence spans, since CSS transforms
+      have no effect on inline non-replaced elements).
 
-    Two trigger paths share one play counter:
+    - Single state variable: hasFired. Cascade plays exactly once
+      per page mount and never replays for the rest of the session,
+      regardless of scrolling around. Only a true remount (route
+      change away and back, or refresh) resets it.
 
-    1. Chevron tap. Hero dispatches a 'cascade-about' window
-       event on chevron click. AboutBlock's listener consumes the
-       scroll trigger (so it can't double-fire as the chevron
-       scroll lands the section in viewport) and bumps playCount.
-       This path always fires — every chevron tap replays.
+    - Two trigger paths feed the same setHasFired(true). Whichever
+      fires first wins; subsequent triggers are React no-ops:
+        1. Chevron tap — Hero dispatches 'cascade-about' on click.
+           The listener delays setHasFired by 1s so the cascade
+           lands as the scroll settles.
+        2. Manual scroll — IntersectionObserver fires at 35%
+           visibility. After hasFired flips, the observer's
+           callback still runs but setHasFired(true) is a no-op.
 
-    2. Manual scroll into viewport. An IntersectionObserver on the
-       section fires once at threshold 0.35 (~35% of the block
-       visible). The hasScrolledIntoView ref makes it strictly
-       one-shot per mount — scrolling back up and down doesn't
-       replay.
+    - Reduced-motion users get cascade() returning {}, so motion
+      elements render at their natural visible state with no
+      animation. hasFired still flips, but the prop generator
+      short-circuits.
 
-    A bumped playCount keys the wrapping <div>, remounting every
-    motion element inside so initial/animate runs fresh. On the
-    initial render (playCount = 0) the cascade() helper returns {}
-    so the motion elements render at their natural visible state
-    with no entry animation — important because we don't want the
-    cascade to fire on first page mount, only on a real trigger.
-
-    Reduced-motion users get isAnimating = false, so cascade()
-    keeps returning {} even after triggers fire — content just
-    appears.
+    - No wrapping <div key=...> needed: the motion elements stay
+      mounted across the trigger; framer-motion animates from the
+      pre-fired hidden state to the post-fired visible state when
+      animate changes.
 */
 
 const socials = ['Instagram', 'Vimeo', 'YouTube'] as const;
@@ -50,135 +49,62 @@ const bioSentences = [
 // to be appreciated rather than blurring past. Not promoted into
 // motion.ts since /info deliberately stays on the faster timing —
 // these constants are local to AboutBlock.
-const CASCADE_STEP    = 0.08;
-const LINE_DURATION   = 0.8;
+const CASCADE_STEP     = 0.08;
+const LINE_DURATION    = 0.8;
 const SCROLL_THRESHOLD = 0.35;
+const CHEVRON_DELAY_MS = 1000;
 
 export default function AboutBlock() {
   const reduceMotion = useReducedMotion() ?? false;
-  const [playCount, setPlayCount] = useState(0);
-  const hasScrolledIntoView = useRef(false);
-  // chevronInitiated guards the chevron's arrival window. Set
-  // immediately on chevron tap; cleared after the cascade finishes.
-  // While true, the IntersectionObserver path bails — even though
-  // the chevron-driven scroll will move AboutBlock into the IO's
-  // threshold mid-arrival, we don't want IO to fire a second cascade.
-  // hasScrolledIntoView is the persistent once-per-mount gate that
-  // also gets set when the chevron path actually plays the cascade.
-  const chevronInitiated    = useRef(false);
-  const sectionRef          = useRef<HTMLElement>(null);
+  const [hasFired, setHasFired] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
-
-  // Chevron path. Hero dispatches 'cascade-about' synchronously
-  // on tap, so the listener can set chevronInitiated BEFORE the
-  // scroll moves the section into the IO threshold. The 1s
-  // setTimeout is what defers the actual cascade start until the
-  // smooth scroll has settled. Once playCount bumps and the
-  // cascade is in flight, a second setTimeout clears
-  // chevronInitiated after the cascade completes.
+  // Chevron path. Hero dispatches the event synchronously on tap;
+  // the listener schedules setHasFired after CHEVRON_DELAY_MS so
+  // the cascade lands as the scroll settles. Once hasFired is true,
+  // setHasFired(true) is a React no-op so subsequent chevron taps
+  // still dispatch but never re-fire the cascade.
   useEffect(() => {
     const handler = () => {
-      chevronInitiated.current = true;
-
-      window.setTimeout(() => {
-        hasScrolledIntoView.current = true;
-        setPlayCount((c) => c + 1);
-
-        // Clear the flag after the cascade fully completes.
-        // Cascade duration = lines (~13) * CASCADE_STEP + LINE_DURATION
-        // ≈ 13 * 0.08 + 0.8 = 1.84s. +200ms buffer.
-        window.setTimeout(() => {
-          chevronInitiated.current = false;
-        }, 2100);
-      }, 1000);
+      window.setTimeout(() => setHasFired(true), CHEVRON_DELAY_MS);
     };
     window.addEventListener('cascade-about', handler);
     return () => window.removeEventListener('cascade-about', handler);
   }, []);
 
-  // Scroll-into-view path + upward-exit reset.
-  //
-  // One IntersectionObserver handles both:
-  //   - Cascade trigger: intersectionRatio crosses SCROLL_THRESHOLD
-  //     (~35%) while no other path is active or has played.
-  //   - Upward-exit reset: section leaves the viewport with its
-  //     boundingClientRect.top > 0, meaning it's now BELOW the
-  //     viewport — user scrolled back up past it (back toward Hero).
-  //     Reset playCount and hasScrolledIntoView so the next arrival
-  //     can cascade again from the hidden state. Without this,
-  //     content stays at opacity 1 after the first cascade and the
-  //     user sees a flash of fully-visible text during the next
-  //     chevron-driven scroll, before the cascade restart kicks in.
-  //
-  //   Downward exit (top < 0, section above viewport — user
-  //   scrolled past into WorkGrid) is a no-op: content stays
-  //   visible since the user has already seen the cascade and
-  //   moved on.
-  //
-  // Threshold [0, 0.35] = callback fires both when the section
-  // crosses any pixel (entry/exit) and when it crosses the 35%
-  // cascade boundary.
+  // Manual-scroll path. IO fires at 35% visibility. Same no-op
+  // semantics on subsequent firings.
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-
     const io = new IntersectionObserver(
       ([entry]) => {
-        // Upward exit -> reset for re-arrival.
-        if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
-          hasScrolledIntoView.current = false;
-          setPlayCount(0);
-          return;
-        }
-        // Downward exit (top < 0) -> leave content visible.
-        if (!entry.isIntersecting) return;
-
-        // Cascade trigger gate.
-        if (
-          entry.intersectionRatio >= SCROLL_THRESHOLD &&
-          !chevronInitiated.current &&
-          !hasScrolledIntoView.current
-        ) {
-          hasScrolledIntoView.current = true;
-          setPlayCount((c) => c + 1);
+        if (entry.isIntersecting && entry.intersectionRatio >= SCROLL_THRESHOLD) {
+          setHasFired(true);
         }
       },
-      { threshold: [0, SCROLL_THRESHOLD] },
+      { threshold: SCROLL_THRESHOLD },
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
-  // Cascade prop generator. Three states:
-  //
-  //   1. Reduced-motion: return {} so motion elements render at
-  //      their natural visible state with no transforms. The user
-  //      never sees the cascade.
-  //
-  //   2. Pre-trigger (playCount = 0): return initial AND animate
-  //      both set to the hidden state. Motion elements paint at
-  //      opacity 0 from first render and stay there — no flash of
-  //      visible text in the window between AboutBlock entering
-  //      the viewport and the IntersectionObserver hitting its
-  //      threshold. Using `animate` (not just `initial`) is what
-  //      pins them; framer-motion would otherwise render at the
-  //      animate state if no animate change is implied.
-  //
-  //   3. Triggered (playCount > 0): the wrapping <div key=...>
-  //      has remounted, so the new motion elements mount with
-  //      initial: opacity 0 -> animate: opacity 1, running the
-  //      cascade transition.
+  // Per-render index counter. cascade() increments per JSX call so
+  // each line gets a monotonically increasing delay in source order.
   let idx = 0;
   const cascade = (inline = false) => {
     if (reduceMotion) return {};
 
-    // Hidden state shared by pre-trigger and triggered initial.
     const hidden = inline
       ? { opacity: 0, top: 10 }
       : { opacity: 0, y: 10 };
     const style  = inline ? { position: 'relative' as const } : undefined;
 
-    if (playCount === 0) {
+    // Pre-fired: pin elements at the hidden state. Setting both
+    // initial AND animate is what holds them there — `initial` alone
+    // wouldn't, since framer-motion would otherwise render at the
+    // animate state when no animate change is implied.
+    if (!hasFired) {
       return { initial: hidden, animate: hidden, ...(style ? { style } : {}) };
     }
 
@@ -209,12 +135,7 @@ export default function AboutBlock() {
       id="about"
       className="bg-bg px-6 md:px-10 pt-32 md:pt-48 pb-32 md:pb-48"
     >
-      {/*
-        key={playCount} forces a remount of the entire content tree
-        on each trigger, so every motion element re-runs its
-        initial -> animate transition from scratch.
-      */}
-      <div key={playCount} className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-14 md:gap-16">
 
           {/* Column 1 — About */}
