@@ -114,6 +114,25 @@ export default function App() {
   // Close the mobile menu when the route changes.
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
+  // Content protection — block right-click globally and drag on
+  // images/videos. Paired with the img/video CSS rules in
+  // index.css (-webkit-user-drag, user-select, touch-callout) so
+  // every current and future media element is protected without
+  // per-element config. Silent prevent — no alerts.
+  useEffect(() => {
+    const onContextMenu = (e: MouseEvent) => e.preventDefault();
+    const onDragStart = (e: DragEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'IMG' || tag === 'VIDEO') e.preventDefault();
+    };
+    document.addEventListener('contextmenu', onContextMenu);
+    document.addEventListener('dragstart', onDragStart);
+    return () => {
+      document.removeEventListener('contextmenu', onContextMenu);
+      document.removeEventListener('dragstart', onDragStart);
+    };
+  }, []);
+
   const goHomeAndScrollTop = (e: React.MouseEvent) => {
     e.preventDefault();
     setMenuOpen(false);
