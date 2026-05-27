@@ -13,6 +13,14 @@ import { motion } from 'framer-motion';
 import { DURATION_MEDIUM, EASE_OUT } from '../motion';
 import MonogramSkeleton from './MonogramSkeleton';
 
+// Alternating tile surfaces. Both are darker than the page bg
+// (#0A0A0A) so the strips read as set INTO the page rather than
+// floating above it. Difference between the two is small on
+// purpose — a quiet rhythm down the grid, not zebra stripes.
+// Index 0 (1st tile) is the darker shade.
+const SHADE_ODD  = '#040404';
+const SHADE_EVEN = '#070707';
+
 const STRIPS = [
   { title: 'Project Title', meta: '2024 — Personal'    },
   { title: 'Project Title', meta: '2023 — Commercial'  },
@@ -34,6 +42,7 @@ export default function WorkGrid() {
         <article
           key={i}
           className="relative w-full overflow-hidden group cursor-pointer aspect-[16/9] md:aspect-auto md:h-[75vh]"
+          style={{ backgroundColor: i % 2 === 0 ? SHADE_ODD : SHADE_EVEN }}
         >
           {/*
             Skeleton placeholder — pulses, respects reduced motion.
