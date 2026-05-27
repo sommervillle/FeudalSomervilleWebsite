@@ -172,9 +172,11 @@ export default function Lightbox({
       const horizontal = Math.abs(dx) > Math.abs(dy);
       const swipe      = Math.abs(dx) > SWIPE_DISTANCE || vx > SWIPE_VELOCITY;
       if (horizontal && swipe) {
-        // Spec: finger swipes left -> prev, right -> next.
-        if (dx < 0) handlePrev();
-        else        handleNext();
+        // Standard mobile gallery convention: finger swipes
+        // right-to-left (dx < 0) reveals the NEXT photo from the
+        // right; left-to-right (dx > 0) reveals the PREVIOUS.
+        if (dx < 0) handleNext();
+        else        handlePrev();
       }
     }
 
