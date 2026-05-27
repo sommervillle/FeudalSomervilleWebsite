@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EASE_OUT } from '../motion';
-import Lightbox from '../components/Lightbox';
+import Lightbox, { type PhotoData } from '../components/Lightbox';
 
 /*
   Photo — personal photography page.
 
   Desktop (md+): single placeholder line.
-  Mobile (< md): edge-to-edge 3-column grid of 24 square placeholders.
+  Mobile (< md): edge-to-edge 3-column grid of square placeholders.
 
-  No section heading on this page. The grid is the page; thumbnails
-  start immediately below the header.
+  PHOTOS holds the per-photo data (title / location / date) that
+  feeds the lightbox caption. For now it's auto-generated placeholder
+  text so the lightbox UI has something to render; real entries
+  replace the array later.
 
   Two behaviours on the grid:
     1. Lightbox        — tap a cell to open the fullscreen viewer.
@@ -18,8 +20,13 @@ import Lightbox from '../components/Lightbox';
                           opacity 0->1 and y 10->0 on EASE_OUT.
 */
 
-const PLACEHOLDER_COUNT = 24;
 const CASCADE_STEP = 0.03;
+
+const PHOTOS: readonly PhotoData[] = Array.from({ length: 24 }).map((_, i) => ({
+  title:    `Photograph ${i + 1}`,
+  location: 'Location',
+  date:     'Date',
+}));
 
 export default function Photo() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -28,7 +35,6 @@ export default function Photo() {
     <section className="bg-bg min-h-screen px-6 md:px-10 pt-40 md:pt-48 pb-32 md:pb-48">
       <div className="max-w-5xl mx-auto">
 
-        {/* Desktop placeholder — unchanged. */}
         <p className="hidden md:block text-muted text-base font-light leading-snug max-w-2xl">
           A selection of personal photography. Coming soon.
         </p>
@@ -38,7 +44,7 @@ export default function Photo() {
           the cells run edge-to-edge.
         */}
         <div className="md:hidden -mx-6 grid grid-cols-3 gap-px">
-          {Array.from({ length: PLACEHOLDER_COUNT }).map((_, i) => (
+          {PHOTOS.map((_, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
@@ -56,10 +62,10 @@ export default function Photo() {
 
       </div>
 
-      {/* Lightbox — full-viewport overlay above page chrome. */}
       <AnimatePresence>
         {lightboxIndex !== null && (
           <Lightbox
+            photos={PHOTOS}
             index={lightboxIndex}
             onClose={() => setLightboxIndex(null)}
             onPrev={() =>
@@ -67,7 +73,7 @@ export default function Photo() {
             }
             onNext={() =>
               setLightboxIndex((i) =>
-                i !== null && i < PLACEHOLDER_COUNT - 1 ? i + 1 : i,
+                i !== null && i < PHOTOS.length - 1 ? i + 1 : i,
               )
             }
           />
