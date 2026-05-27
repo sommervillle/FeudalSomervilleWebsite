@@ -12,8 +12,8 @@ import { motion, useReducedMotion } from 'framer-motion';
       *whichever* dimension is smaller, so the same component works
       for square (Photo grid), 16:9 (future WorkGrid), portrait
       (future hero poster), etc.
-    - Subtle pulse: opacity oscillates 0.4 -> 0.7 -> 0.4 on a 1.5s
-      easeInOut loop. Reduced-motion users get a static 0.55.
+    - Full pulse: opacity oscillates 0 -> 1 -> 0 on a 1.5s
+      easeInOut loop. Reduced-motion users get a static 0.5.
 
   Reusable across image-loading states. Consumers pass className to
   size and position the skeleton (typically w-full h-full to fill a
@@ -60,7 +60,7 @@ export default function MonogramSkeleton({
         aria-hidden="true"
         draggable={false}
         className="max-w-[35%] max-h-[35%] select-none pointer-events-none"
-        animate={reduceMotion ? { opacity: 0.55 } : { opacity: [0.4, 0.7, 0.4] }}
+        animate={reduceMotion ? { opacity: 0.5 } : { opacity: [0, 1, 0] }}
         transition={
           reduceMotion
             ? { duration: 0 }
