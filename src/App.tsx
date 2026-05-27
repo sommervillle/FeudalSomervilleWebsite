@@ -3,7 +3,8 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Home from './pages/Home';
 import Info from './pages/Info';
-import { scrollToY, scrollToElement } from './smoothScroll';
+import Photo from './pages/Photo';
+import { scrollToY } from './smoothScroll';
 import { DURATION_FAST, DURATION_MEDIUM, EASE_OUT, EASE_SMOOTH } from './motion';
 
 /*
@@ -103,16 +104,6 @@ export default function App() {
     }
   };
 
-  const goContact = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    if (isHome) {
-      scrollToElement('footerblock', 0, reduceMotion);
-    } else {
-      navigate('/', { state: { scrollTo: 'footerblock' } });
-    }
-  };
-
   const goInfo = (e: React.MouseEvent) => {
     e.preventDefault();
     setMenuOpen(false);
@@ -120,10 +111,17 @@ export default function App() {
     window.scrollTo({ top: 0 });
   };
 
+  const goPhoto = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    navigate('/photo');
+    window.scrollTo({ top: 0 });
+  };
+
   const navItems = [
-    { label: 'Info',    onClick: goInfo              },
-    { label: 'Work',    onClick: goHomeAndScrollTop  },
-    { label: 'Contact', onClick: goContact           },
+    { label: 'Info',  onClick: goInfo             },
+    { label: 'Work',  onClick: goHomeAndScrollTop },
+    { label: 'Photo', onClick: goPhoto            },
   ];
 
   return (
@@ -271,6 +269,10 @@ export default function App() {
             <Route
               path="/info"
               element={<PageTransition><Info /></PageTransition>}
+            />
+            <Route
+              path="/photo"
+              element={<PageTransition><Photo /></PageTransition>}
             />
           </Routes>
         </AnimatePresence>
