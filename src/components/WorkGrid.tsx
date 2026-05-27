@@ -13,13 +13,15 @@ import { motion } from 'framer-motion';
 import { DURATION_MEDIUM, EASE_OUT } from '../motion';
 import MonogramSkeleton from './MonogramSkeleton';
 
-// Alternating tile surfaces. Both are darker than the page bg
-// (#0A0A0A) so the strips read as set INTO the page rather than
-// floating above it. Difference between the two is small on
-// purpose — a quiet rhythm down the grid, not zebra stripes.
-// Index 0 (1st tile) is the darker shade.
-const SHADE_ODD  = '#070707';
-const SHADE_EVEN = '#080808';
+// Alternating tile surfaces.
+//   - SHADE_EVEN matches the AboutBlock background (bg-bg
+//     = #0A0A0A) so even tiles read as the same surface as the
+//     surrounding sections — they sit continuously with the page.
+//   - SHADE_ODD is one unit per channel darker (#090909). Just
+//     enough to register as quiet rhythm between tiles without
+//     reading as a stripe.
+const SHADE_ODD  = '#090909';
+const SHADE_EVEN = '#0A0A0A';
 
 const STRIPS = [
   { title: 'Project Title', meta: '2024 — Personal'    },
