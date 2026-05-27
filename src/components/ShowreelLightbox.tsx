@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { DURATION_FAST, EASE_OUT } from '../motion';
+import { useBodyScrollLock } from '../useBodyScrollLock';
 
 /*
   ShowreelLightbox — mobile fullscreen video viewer for the hero
@@ -37,6 +38,8 @@ export default function ShowreelLightbox({
   src,
   placeholderText = 'Showreel coming soon',
 }: ShowreelLightboxProps) {
+  useBodyScrollLock();
+
   return (
     <motion.div
       role="dialog"
