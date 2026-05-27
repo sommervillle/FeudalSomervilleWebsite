@@ -64,14 +64,8 @@ export default function Info() {
       <div className="max-w-5xl mx-auto">
         <div className="space-y-24 md:space-y-32">
 
-          {/* 1. Biography — full-width, large heading. First section. */}
-          <div>
-            <p className="text-fg/40 text-[11px] tracking-[0.28em] uppercase mb-6">
-              Feudal Somerville
-            </p>
-            <h2 className="text-fg text-4xl md:text-6xl font-medium tracking-[-0.02em] leading-none mb-10">
-              Biography
-            </h2>
+          {/* 1. Biography — same Row treatment as the other sections. */}
+          <Row label="Biography">
             <p className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
               A visual artist and director with a lifelong interest in
               history, Feudal began his career as a teenage intern at VTR
@@ -84,7 +78,7 @@ export default function Info() {
               combines traditional post-production craft with AI-augmented
               workflows.
             </p>
-          </div>
+          </Row>
 
           {/* 2. Selected Clients */}
           <Row label="Selected Clients">
