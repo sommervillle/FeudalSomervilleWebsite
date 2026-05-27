@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { DURATION_MEDIUM, EASE_OUT } from '../motion';
 
@@ -8,31 +7,28 @@ import { DURATION_MEDIUM, EASE_OUT } from '../motion';
   same visual system.
 
   Structure:
-    1. Biography          — eyebrow / large heading / paragraph
-    2. Selected Clients   — label / dash / placeholder
-    3. Services           — label / dash / vertical list
+    1. Biography          — label / dash / 4 sentences (each cascades)
+    2. Selected Clients   — label / dash / 13 items
+    3. Services           — label / dash / 7 items
     4. Connect            — label / dash / contact paragraph
 
-  First-load cascade:
-    Every visible text element fades in opacity 0->1 + y 10->0 on
-    EASE_OUT / DURATION_MEDIUM, staggered 50ms apart in DOM source
-    order (which matches the visual top->bottom reading order on
-    the inlined layout).
-
-    The cascade runs once per browser session — a module-level
-    `hasPlayedCascade` flag survives component unmount/remount
-    (e.g. navigating away and back) but resets on a full page
-    reload. useState's initialiser snapshots the decision at first
-    mount so a later flip of the module flag never replays the
-    animation on this instance.
-
-    Reduced-motion users skip the cascade entirely: `cascade()`
-    returns an empty props object so the motion elements render
-    at their natural opacity:1 / y:0 with no initial/animate.
+  Cascade behaviour:
+    - Plays on every entry to the page. The previous once-per-session
+      gate was removed; React already remounts the Info component on
+      each navigation (the AnimatePresence in App.tsx is keyed on
+      location.pathname), so dropping the module-level flag is all
+      that's needed to make the animation re-fire.
+    - Block-level elements (labels, dashes, list items, body paragraphs)
+      animate opacity 0->1 + y 10->0.
+    - Inline elements (the four bio sentences) use position: relative +
+      top 10->0 instead of translateY, because CSS transforms don't
+      apply to inline non-replaced elements. The visual effect is the
+      same — a 10px rise — but the elements stay in normal text flow
+      so the paragraph wraps as a single continuous block.
+    - Reduced-motion users skip the animation entirely: cascade()
+      returns {} so motion elements render at their natural visible
+      state with no initial / animate / transition.
 */
-
-// Module-level — persists across remounts within the same browser session.
-let hasPlayedCascade = false;
 
 const CASCADE_STEP = 0.05;
 
@@ -62,34 +58,45 @@ const clients = [
   'The King’s Trust',
 ] as const;
 
+// Bio split sentence-by-sentence. Each sentence is its own cascade
+// step; together they still flow as one paragraph (each is a span,
+// joined by a literal space).
+const bioSentences = [
+  'A visual artist and director with a lifelong interest in history, Feudal began his career as a teenage intern at VTR North and Golden in Leeds, small post houses where the artists and producers took him on and taught him the craft.',
+  'At seventeen he travelled to the USA to freelance for UVPH and The Mill+ in New York.',
+  'More senior roles followed at Social, The Mill+, ForPeople, Kenyon Weston, and Heckler.',
+  'He now works independently, building a hybrid pipeline that combines traditional post-production craft with AI-augmented workflows.',
+];
+
 export default function Info() {
   const reduceMotion = useReducedMotion() ?? false;
-  // Snapshot at first render — immutable for this mount.
-  const [animateThisMount] = useState(
-    () => !hasPlayedCascade && !reduceMotion,
-  );
 
-  useEffect(() => {
-    if (animateThisMount) hasPlayedCascade = true;
-  }, [animateThisMount]);
-
-  // Cascade counter — resets each render, increments per call in
-  // JSX source order. JS evaluates JSX children left-to-right /
-  // top-to-bottom, so each cascade() call gets a monotonically
-  // increasing index matching the reading order of the inlined
-  // sections.
+  // Per-render counter. let is recreated each render and incremented
+  // by cascade() in JSX source order so each motion element gets a
+  // monotonically increasing delay matching the reading order.
   let idx = 0;
-  const cascade = () => {
-    if (!animateThisMount) return {};
+  const cascade = (inline = false) => {
+    if (reduceMotion) return {};
     const i = idx++;
+    const transition = {
+      delay: i * CASCADE_STEP,
+      duration: DURATION_MEDIUM,
+      ease: EASE_OUT,
+    };
+    // Inline variant: animate `top` with position:relative because
+    // translateY has no effect on inline non-replaced elements.
+    if (inline) {
+      return {
+        initial:    { opacity: 0, top: 10 },
+        animate:    { opacity: 1, top: 0 },
+        transition,
+        style:      { position: 'relative' as const },
+      };
+    }
     return {
-      initial: { opacity: 0, y: 10 },
-      animate: { opacity: 1, y: 0 },
-      transition: {
-        delay: i * CASCADE_STEP,
-        duration: DURATION_MEDIUM,
-        ease: EASE_OUT,
-      },
+      initial:    { opacity: 0, y: 10 },
+      animate:    { opacity: 1, y: 0 },
+      transition,
     };
   };
 
@@ -109,18 +116,14 @@ export default function Info() {
               </motion.p>
             </div>
             <div className="md:col-span-2">
-              <motion.p {...cascade()} className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
-                A visual artist and director with a lifelong interest in
-                history, Feudal began his career as a teenage intern at VTR
-                North and Golden in Leeds, small post houses where the
-                artists and producers took him on and taught him the craft.
-                At seventeen he travelled to the USA to freelance for UVPH
-                and The Mill+ in New York. More senior roles followed at
-                Social, The Mill+, ForPeople, Kenyon Weston, and Heckler.
-                He now works independently, building a hybrid pipeline that
-                combines traditional post-production craft with AI-augmented
-                workflows.
-              </motion.p>
+              <p className="text-fg/80 text-base font-semibold leading-snug max-w-2xl">
+                {bioSentences.map((sentence, i) => (
+                  <motion.span key={i} {...cascade(true)}>
+                    {sentence}
+                    {i < bioSentences.length - 1 ? ' ' : ''}
+                  </motion.span>
+                ))}
+              </p>
             </div>
           </div>
 
