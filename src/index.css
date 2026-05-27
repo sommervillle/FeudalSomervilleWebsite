@@ -20,4 +20,33 @@
   * {
     box-sizing: border-box;
   }
+
+  /*
+    Content protection. Applies to every img and video on the
+    site automatically, so future media (Hero showreel, WorkGrid
+    thumbnails, Photo grid) inherits the same behaviour with no
+    per-element config.
+
+    - -webkit-user-drag: none stops desktop drag-and-save in
+      Safari/Chrome.
+    - user-select / -webkit-user-select: none blocks selecting
+      an image as content (so it can't be copied via Edit > Copy).
+    - -webkit-touch-callout: none suppresses the iOS hold-to-save
+      preview popup.
+
+    Right-click and dragstart are also blocked at the document
+    level in App.tsx as a JS fallback for non-WebKit browsers
+    and for the right-click case across the whole page (text,
+    chrome, anywhere — not just media).
+
+    Deliberately NOT setting pointer-events: none — that would
+    break tap/click on images (e.g. the logo's anchor wrapper).
+  */
+  img,
+  video {
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
 }
