@@ -201,6 +201,16 @@ export default function Lightbox({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
+      // Touch handlers live on the container, not the photo, so a
+      // swipe anywhere on the lightbox (including the letterbox
+      // black bars top/bottom) navigates. With handlers attached to
+      // a 16:9 placeholder on a 375px-wide phone the touch area was
+      // only ~211px tall — half the screen — so swipes outside the
+      // photo went to dead space.
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchEnd}
     >
       {/*
         X button — z-[110], on top of image even when zoomed. fixed
@@ -241,11 +251,7 @@ export default function Lightbox({
         >
           <motion.div
             style={{ x: photoX, y: photoY, scale }}
-            className="w-full aspect-[16/9] bg-fg/10 touch-none select-none"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            onTouchCancel={onTouchEnd}
+            className="w-full aspect-[16/9] bg-fg/10 select-none pointer-events-none"
           >
             {/*
               Placeholder. When real images land, swap for
