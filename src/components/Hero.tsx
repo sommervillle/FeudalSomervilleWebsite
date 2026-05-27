@@ -94,22 +94,14 @@ export default function Hero() {
           >
             <button
               onClick={() => {
-                // Start the scroll first. Smooth scroll uses
-                // DURATION_SLOW (1.2s) with EASE_SMOOTH — the page
-                // is still moving for most of that time. Dispatch
-                // the cascade trigger after a ~1s delay so the
-                // animation starts as the AboutBlock settles into
-                // its final position rather than scrolling into
-                // view mid-animation.
-                //
-                // The 1s delay also gives AboutBlock's listener
-                // time to consume the scroll trigger before the
-                // IntersectionObserver fires when the scroll
-                // lands the section in view.
+                // Dispatch synchronously so AboutBlock sets its
+                // chevronInitiated flag BEFORE the scroll moves the
+                // section into the IntersectionObserver's threshold.
+                // The 1s settle-delay lives inside AboutBlock's
+                // handler — keeps timing logic in one place and
+                // lets Hero stay a plain notifier.
+                window.dispatchEvent(new Event('cascade-about'));
                 scrollToElement('about', 40, reduceMotion);
-                window.setTimeout(() => {
-                  window.dispatchEvent(new Event('cascade-about'));
-                }, 1000);
               }}
               aria-label="Scroll to next section"
               className="block p-3 text-fg/35 hover:text-fg/65 transition-opacity duration-300"
