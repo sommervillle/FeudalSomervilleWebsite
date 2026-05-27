@@ -32,7 +32,7 @@ export default function Photo() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   return (
-    <section className="bg-bg min-h-screen px-6 md:px-10 pt-40 md:pt-48 pb-32 md:pb-48">
+    <section className="bg-bg min-h-screen px-6 md:px-10 pt-[120px] md:pt-48 pb-32 md:pb-48">
       <div className="max-w-5xl mx-auto">
 
         <p className="hidden md:block text-muted text-base font-light leading-snug max-w-2xl">
