@@ -71,16 +71,37 @@ export default function App() {
       return;
     }
 
-    const hero = document.getElementById('hero');
-    if (!hero) return;
+    // AnimatePresence mode="wait" defers Home (and therefore Hero)
+    // mounting until /info or /photo finishes its exit animation, so on
+    // a route change isHome flips true before the Hero element exists.
+    // The previous implementation read getElementById('hero') once and
+    // bailed when it was null, leaving headerSolid stuck at true and
+    // the header dark over the (now in-view) hero. Poll on rAF until
+    // Hero appears in the DOM, then attach the observer — its first
+    // entry callback re-evaluates the current scroll position so the
+    // header correctly returns to transparent at the top of /.
+    let rafId = 0;
+    let observer: IntersectionObserver | null = null;
 
-    const io = new IntersectionObserver(
-      ([entry]) => setHeaderSolid(!entry.isIntersecting),
-      { threshold: 0, rootMargin: '-150px 0px 0px 0px' },
-    );
+    const tryAttach = () => {
+      const hero = document.getElementById('hero');
+      if (!hero) {
+        rafId = requestAnimationFrame(tryAttach);
+        return;
+      }
+      observer = new IntersectionObserver(
+        ([entry]) => setHeaderSolid(!entry.isIntersecting),
+        { threshold: 0, rootMargin: '-150px 0px 0px 0px' },
+      );
+      observer.observe(hero);
+    };
 
-    io.observe(hero);
-    return () => io.disconnect();
+    tryAttach();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer?.disconnect();
+    };
   }, [isHome]);
 
   // Back-to-top visibility.
