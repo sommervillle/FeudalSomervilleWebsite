@@ -18,8 +18,8 @@ import MonogramSkeleton from './MonogramSkeleton';
 // floating above it. Difference between the two is small on
 // purpose — a quiet rhythm down the grid, not zebra stripes.
 // Index 0 (1st tile) is the darker shade.
-const SHADE_ODD  = '#040404';
-const SHADE_EVEN = '#070707';
+const SHADE_ODD  = '#070707';
+const SHADE_EVEN = '#080808';
 
 const STRIPS = [
   { title: 'Project Title', meta: '2024 — Personal'    },
