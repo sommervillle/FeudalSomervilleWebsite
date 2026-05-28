@@ -62,9 +62,9 @@ const clients = [
 // step; together they still flow as one paragraph (each is a span,
 // joined by a literal space).
 const bioSentences = [
-  'A visual artist and director with a lifelong interest in history, Feudal began his career as a teenage intern at VTR North and Golden in Leeds, small post houses where the artists and producers took him on and taught him the craft.',
+  'A visual artist and director with a lifelong interest in history, Feudal began his career as a teenage intern at VTR North and Golden in West Yorkshire, where his self-taught skills first met a professional studio environment.',
   'At seventeen he travelled to the USA to freelance for UVPH and The Mill+ in New York.',
-  'More senior roles followed at Social, The Mill+, ForPeople, Kenyon Weston, and Heckler.',
+  'More senior roles followed at Social, The Mill+, and ForPeople in London, Kenyon Weston back in West Yorkshire, and Heckler in Sydney.',
   'He now works independently, building a hybrid pipeline that combines traditional post-production craft with AI-augmented workflows.',
 ];
 
