@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Home from './pages/Home';
@@ -54,6 +54,14 @@ function PageTransition({ children }: { children: React.ReactNode }) {
   );
 }
 
+// AnimatePresence mode="wait" runs PageTransition exit then enter
+// back-to-back at DURATION_FAST each, so a full route crossfade
+// runs for 2 * DURATION_FAST. The 50ms buffer covers the one-render
+// gap between unmount and mount. This is how long the burger
+// overlay must stay opaque so the user never sees the crossfade
+// happening underneath when they tap a menu link.
+const CROSSFADE_TOTAL_MS = Math.round(DURATION_FAST * 2 * 1000) + 50;
+
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,6 +87,13 @@ export default function App() {
     if (typeof document === 'undefined') return false;
     return !!document.getElementById('splash');
   });
+
+  // When a burger-driven nav schedules a delayed close, this flag
+  // tells the pathname-change useEffect below to skip its own
+  // immediate setMenuOpen(false). Otherwise the immediate close
+  // would race the delayed close and the overlay would lift mid-
+  // crossfade — exactly the flash we're trying to hide.
+  const burgerDelayedCloseScheduled = useRef(false);
 
   // Header background: observe Hero only on Home; otherwise stay solid.
   useEffect(() => {
@@ -127,8 +142,14 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close the mobile menu when the route changes.
-  useEffect(() => setMenuOpen(false), [location.pathname]);
+  // Close the mobile menu when the route changes. Skipped when a
+  // burger-handler explicitly scheduled a delayed close — the
+  // setTimeout there will fire setMenuOpen(false) once the
+  // route crossfade has fully completed (see scheduleBurgerClose).
+  useEffect(() => {
+    if (burgerDelayedCloseScheduled.current) return;
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   // Slide the header + burger in when the HTML splash starts
   // fading out. Listener attached only while headerOffscreen is
@@ -161,30 +182,58 @@ export default function App() {
     };
   }, []);
 
+  // Called from the burger nav handlers when an actual route
+  // change is happening. Keeps the overlay fully opaque for
+  // CROSSFADE_TOTAL_MS so the AnimatePresence crossfade runs
+  // entirely hidden behind it, then closes — the user sees the
+  // burger lift onto the new page already in its settled state.
+  //
+  // No-op when the burger isn't open (desktop nav calls these
+  // handlers too — menuOpen is false there, nothing to close).
+  // Reduced-motion users skip the orchestration: burger closes
+  // immediately, crossfade swaps instantly under MotionConfig.
+  const scheduleBurgerClose = () => {
+    if (!menuOpen) return;
+    if (reduceMotion) {
+      setMenuOpen(false);
+      return;
+    }
+    burgerDelayedCloseScheduled.current = true;
+    window.setTimeout(() => {
+      setMenuOpen(false);
+      burgerDelayedCloseScheduled.current = false;
+    }, CROSSFADE_TOTAL_MS);
+  };
+
+  // Tapping a link for the route you're already on: no crossfade
+  // will run, so close the burger immediately. Otherwise navigate
+  // and let scheduleBurgerClose cover the crossfade.
+  const navigateAndCloseBurger = (path: string) => {
+    if (location.pathname === path) {
+      setMenuOpen(false);
+      return;
+    }
+    navigate(path);
+    window.scrollTo({ top: 0 });
+    scheduleBurgerClose();
+  };
+
   const goHomeAndScrollTop = (e: React.MouseEvent) => {
     e.preventDefault();
-    setMenuOpen(false);
     if (isHome) {
+      // Already on /; no nav, no crossfade. Close burger and
+      // run the cinematic scroll-to-top immediately.
+      setMenuOpen(false);
       scrollToY(0, reduceMotion);
-    } else {
-      navigate('/');
-      window.scrollTo({ top: 0 });
+      return;
     }
+    navigate('/');
+    window.scrollTo({ top: 0 });
+    scheduleBurgerClose();
   };
 
-  const goInfo = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    navigate('/info');
-    window.scrollTo({ top: 0 });
-  };
-
-  const goPhoto = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuOpen(false);
-    navigate('/photo');
-    window.scrollTo({ top: 0 });
-  };
+  const goInfo  = (e: React.MouseEvent) => { e.preventDefault(); navigateAndCloseBurger('/info');  };
+  const goPhoto = (e: React.MouseEvent) => { e.preventDefault(); navigateAndCloseBurger('/photo'); };
 
   const navItems = [
     { label: 'Info',  onClick: goInfo             },
