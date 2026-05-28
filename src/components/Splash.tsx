@@ -47,7 +47,7 @@ export default function Splash({ onComplete }: SplashProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, ease: EASE_OUT }}
-        className="h-20 md:h-[120px] w-auto"
+        className="h-[160px] md:h-[200px] w-auto"
       />
     </motion.div>
   );

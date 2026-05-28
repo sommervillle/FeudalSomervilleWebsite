@@ -11,9 +11,45 @@
       href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
+    <style>
+      /*
+        Pre-React splash. Rendered straight from index.html so the
+        dark backdrop is painted before the JS bundle parses — no
+        flash of Hero between document paint and the first React
+        commit. main.tsx decides whether to run the fade sequence
+        or remove the element immediately, based on route +
+        sessionStorage + prefers-reduced-motion.
+
+        Easing matches motion.ts EASE_OUT (0.16, 1, 0.3, 1).
+      */
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: #0A0A0A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #splash img {
+        height: 160px;
+        width: auto;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      @media (min-width: 768px) {
+        #splash img { height: 200px; }
+      }
+      #splash.splash--fade-in img { opacity: 1; }
+      #splash.splash--fade-out { opacity: 0; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="splash" aria-hidden="true"><img src="/monogram.png" alt="" /></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

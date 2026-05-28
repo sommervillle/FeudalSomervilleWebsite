@@ -7,6 +7,12 @@ permissions:
   checks: write
   contents: read
   pull-requests: write
+env:
+  # Opt the runner into Node.js 24 ahead of GitHub's forced
+  # upgrade. Per the deprecation note in the action logs, Node 20
+  # is being deprecated 2025-09-19; setting this preempts any
+  # half-rolled-out enforcement and silences the per-run warning.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 jobs:
   build_and_preview:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
