@@ -12,11 +12,11 @@ import { motion, useReducedMotion } from 'framer-motion';
       max-w-[35%] + max-h-[35%] together cap the image to 35% of
       *whichever* dimension is smaller, so the same component works
       for square (Photo grid), 16:9 (Work tiles), portrait, etc.
-    - Half pulse: opacity oscillates 0.1 -> 0.5 -> 0.1 on a 3s
-      easeInOut loop, repeating. Floor at 0.1 keeps the monogram
-      always faintly visible — it never goes fully invisible.
-      Reduced-motion users get a static 0.3 (the animation
-      midpoint).
+    - Subtle pulse: opacity oscillates 0.02 -> 0.25 -> 0.02 on a
+      3s easeInOut loop, repeating. Floor at 0.02 keeps the
+      monogram always faintly visible — it never goes fully
+      invisible. Reduced-motion users get a static 0.13 (the
+      animation midpoint).
 
   Stagger / ripple:
     Optional `delay` prop offsets the first pulse cycle by N
@@ -40,7 +40,7 @@ interface MonogramSkeletonProps {
 }
 
 const PULSE_DURATION = 3;
-const STATIC_OPACITY = 0.3;
+const STATIC_OPACITY = 0.13;
 
 export default function MonogramSkeleton({
   src = '/monogram.png',
@@ -76,7 +76,7 @@ export default function MonogramSkeleton({
         aria-hidden="true"
         draggable={false}
         className="max-w-[35%] max-h-[35%] select-none pointer-events-none"
-        animate={reduceMotion ? { opacity: STATIC_OPACITY } : { opacity: [0.1, 0.5, 0.1] }}
+        animate={reduceMotion ? { opacity: STATIC_OPACITY } : { opacity: [0.02, 0.25, 0.02] }}
         transition={
           reduceMotion
             ? { duration: 0 }
