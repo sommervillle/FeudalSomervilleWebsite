@@ -82,12 +82,16 @@ export default function Hero() {
           gentle entrance in the no-splash cases (refresh /, SPA-nav
           to /). Two y transforms compose cleanly because they're
           on separate elements.
+
+          Slide starts 500ms after the header/burger slide (PR #60)
+          per spec — the two pairs are staggered, top-down first
+          then bottom-up.
         */}
         <motion.div
           className="absolute bottom-[100px] inset-x-0 z-10 pointer-events-none md:px-10"
           initial={false}
           animate={{ y: heroOffscreen ? HERO_SLIDE_OFFSET : 0 }}
-          transition={{ duration: 0.6, ease: EASE_OUT }}
+          transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.5 }}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -132,7 +136,7 @@ export default function Hero() {
           <motion.div
             initial={false}
             animate={{ y: heroOffscreen ? HERO_SLIDE_OFFSET : 0 }}
-            transition={{ duration: 0.6, ease: EASE_OUT }}
+            transition={{ duration: 0.6, ease: EASE_OUT, delay: 0.5 }}
           >
           <motion.div
             animate={{ y: [0, -3, 0] }}
