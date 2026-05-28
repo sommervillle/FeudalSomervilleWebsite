@@ -23,11 +23,21 @@ export default function FooterBlock() {
     >
       {/* max-w-5xl mx-auto: tagline stays centred within the safe
           zone (== viewport centre on wide screens); copyright /
-          email / socials align with AboutBlock's column edges. */}
+          email / socials align with AboutBlock's column edges. The
+          two border-t dividers (one before the tagline, one above
+          the bottom row) sit inside this same container so they
+          share the safe-zone width and align horizontally. */}
       <div className="max-w-5xl mx-auto">
 
-        {/* Centred tagline */}
-        <div className="text-center mb-28 md:mb-36">
+        {/* Top divider — mirrors the bottom row's border-t exactly:
+            same border-t border-fg/10, same horizontal container,
+            so the two lines bracket the tagline symmetrically. */}
+        <div className="border-t border-fg/10" />
+
+        {/* Centred tagline. pt-28 md:pt-36 above mirrors the
+            mb-28 md:mb-36 below, so the tagline sits equidistant
+            from each line. */}
+        <div className="text-center pt-28 md:pt-36 mb-28 md:mb-36">
           <p className="text-fg/60 text-sm md:text-[15px] font-light tracking-[0.04em]">
             Old craft. New tools.
           </p>
