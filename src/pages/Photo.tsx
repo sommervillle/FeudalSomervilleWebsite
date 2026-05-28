@@ -23,6 +23,13 @@ import MonogramSkeleton from '../components/MonogramSkeleton';
 
 const CASCADE_STEP = 0.03;
 
+// Checkerboard shades — same near-blacks as WorkGrid's alternating
+// tiles. Cell is "dark" when (row + col) is even, "light" otherwise.
+// Both are darker than (or equal to) the page bg so cells read as
+// set into the page rather than floating above it.
+const SHADE_DARK  = '#090909';
+const SHADE_LIGHT = '#0A0A0A';
+
 const PHOTOS: readonly PhotoData[] = Array.from({ length: 24 }).map((_, i) => ({
   title:    `Photograph ${i + 1}`,
   location: 'Location',
@@ -55,6 +62,7 @@ export default function Photo() {
           {PHOTOS.map((_, i) => {
             const row = Math.floor(i / 3);
             const col = i % 3;
+            const isDark = (row + col) % 2 === 0;
             return (
               <motion.div
                 key={i}
@@ -66,11 +74,12 @@ export default function Photo() {
                   ease: EASE_OUT,
                 }}
                 className="aspect-square cursor-pointer"
+                style={{ backgroundColor: isDark ? SHADE_DARK : SHADE_LIGHT }}
                 onClick={() => setLightboxIndex(i)}
               >
                 <MonogramSkeleton
                   delay={(row + col) * 0.15}
-                  className="w-full h-full bg-fg/5"
+                  className="w-full h-full"
                 />
               </motion.div>
             );
