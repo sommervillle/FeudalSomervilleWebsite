@@ -45,24 +45,36 @@ export default function Photo() {
           the cells run edge-to-edge. Each cell is a MonogramSkeleton
           standing in as a loading placeholder for the future image;
           the wrapping motion.div owns the cascade reveal and click.
+
+          Diagonal pulse ripple: each cell's skeleton delay is
+          (row + col) * 0.15s, so the top-left cell starts at 0,
+          the next anti-diagonal (1 cell) at 0.15s, then 0.30s,
+          0.45s, ... across the grid.
         */}
         <div className="md:hidden -mx-6 grid grid-cols-3 gap-px">
-          {PHOTOS.map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: i * CASCADE_STEP,
-                duration: 0.4,
-                ease: EASE_OUT,
-              }}
-              className="aspect-square cursor-pointer"
-              onClick={() => setLightboxIndex(i)}
-            >
-              <MonogramSkeleton className="w-full h-full bg-fg/5" />
-            </motion.div>
-          ))}
+          {PHOTOS.map((_, i) => {
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: i * CASCADE_STEP,
+                  duration: 0.4,
+                  ease: EASE_OUT,
+                }}
+                className="aspect-square cursor-pointer"
+                onClick={() => setLightboxIndex(i)}
+              >
+                <MonogramSkeleton
+                  delay={(row + col) * 0.15}
+                  className="w-full h-full bg-fg/5"
+                />
+              </motion.div>
+            );
+          })}
         </div>
 
       </div>

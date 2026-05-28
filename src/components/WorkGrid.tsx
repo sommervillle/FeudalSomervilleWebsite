@@ -48,11 +48,16 @@ export default function WorkGrid() {
         >
           {/*
             Skeleton placeholder — pulses, respects reduced motion.
+            Top-to-bottom ripple: each tile's pulse starts 300ms
+            after the previous one, then loops on its own timeline.
             Keeps the subtle group-hover zoom from the original
             backing div so the "video lift" feel is preserved for
             when the real thumbnails drop in here.
           */}
-          <MonogramSkeleton className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.025]" />
+          <MonogramSkeleton
+            delay={i * 0.3}
+            className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+          />
 
           {/* Dark scrim — visible on hover, sits above the skeleton
               so the title/meta below read cleanly on top. */}
