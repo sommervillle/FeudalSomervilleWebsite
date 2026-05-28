@@ -47,10 +47,16 @@ if (splash) {
     // 2500ms total. The 2000ms before adding the fade-out class
     // is fade-in duration (500) + hold (1500), and the 500ms
     // before removal matches the fade-out's CSS transition.
+    //
+    // Dispatching 'splash-exit' at the moment fade-out begins
+    // lets App.tsx start the header + burger slide-in in
+    // parallel with the backdrop fade-out, so the header
+    // settles into position just as the splash clears.
     requestAnimationFrame(() => {
       splash.classList.add('splash--fade-in');
       window.setTimeout(() => {
         splash.classList.add('splash--fade-out');
+        window.dispatchEvent(new Event('splash-exit'));
         window.setTimeout(() => splash.remove(), 500);
       }, 2000);
     });
