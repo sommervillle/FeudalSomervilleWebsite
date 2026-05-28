@@ -40,29 +40,14 @@ const overlayItem = {
   },
 };
 
-// Wrapper that fades each page in/out for the AnimatePresence
-// cross-fade. AnimatePresence mode="wait" runs the exit fade
-// before mounting the new page, so the timing is:
-//   150ms out + 150ms in = 300ms total per route change.
-//
-// Reduced-motion users get a clean instant swap: initial:false
-// skips the entry fade, duration:0 zeroes the exit so
-// AnimatePresence unmounts immediately. framer-motion's
-// MotionConfig reducedMotion="user" still permits opacity
-// transitions by default, so we gate explicitly here.
-const PAGE_TRANSITION_DURATION = 0.15;
-
+// Wrapper that fades each page in/out for the AnimatePresence cross-fade.
 function PageTransition({ children }: { children: React.ReactNode }) {
-  const reduceMotion = useReducedMotion() ?? false;
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0 }}
+      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{
-        duration: reduceMotion ? 0 : PAGE_TRANSITION_DURATION,
-        ease: EASE_SMOOTH,
-      }}
+      transition={{ duration: DURATION_FAST, ease: EASE_OUT }}
     >
       {children}
     </motion.div>
@@ -312,11 +297,8 @@ export default function App() {
       <main>
         {/*
           mode="wait" plays the exit animation of the leaving route
-          before the new route mounts and fades in. Total transition
-          is 2 * PAGE_TRANSITION_DURATION (~300ms). Header stays
-          mounted outside this AnimatePresence so it never fades —
-          only its backgroundColor shifts via its own motion.header
-          animation.
+          before the new route mounts and fades in. Total transition is
+          ~2 * DURATION_FAST.
         */}
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
