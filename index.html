@@ -43,13 +43,31 @@
       @media (min-width: 768px) {
         #splash img { height: 200px; }
       }
+      /* Loading bar pinned to the top edge. Width transitions
+         linearly over 2.5s — matches the full splash duration so
+         the bar reaches 100% exactly as the splash finishes
+         fading out. Inside the splash container so it fades with
+         the backdrop on the way out. */
+      #splash-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 2px;
+        width: 0;
+        background: #F2F1ED;
+        transition: width 2.5s linear;
+      }
       #splash.splash--fade-in img { opacity: 1; }
+      #splash.splash--fade-in #splash-bar { width: 100%; }
       #splash.splash--fade-out { opacity: 0; }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <div id="splash" aria-hidden="true"><img src="/monogram.png" alt="" /></div>
+    <div id="splash" aria-hidden="true">
+      <div id="splash-bar"></div>
+      <img src="/monogram.png" alt="" />
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

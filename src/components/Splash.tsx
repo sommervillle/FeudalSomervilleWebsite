@@ -41,6 +41,19 @@ export default function Splash({ onComplete }: SplashProps) {
       className="fixed inset-0 z-[200] bg-bg flex items-center justify-center"
       aria-hidden="true"
     >
+      {/*
+        Loading bar pinned to the top. Linear 0 -> 100% width
+        over 2.5s matches the full splash duration; the bar
+        reaches the right edge exactly as the splash starts its
+        final removal. Inside the splash motion.div so it fades
+        out together with the backdrop.
+      */}
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: '100%' }}
+        transition={{ duration: 2.5, ease: 'linear' }}
+        className="absolute top-0 left-0 h-[2px] bg-fg"
+      />
       <motion.img
         src="/monogram.png"
         alt=""
