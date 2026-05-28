@@ -4,33 +4,47 @@ import { motion, useReducedMotion } from 'framer-motion';
   MonogramSkeleton — placeholder for loading images / video.
 
   Visual:
-    - Surface: bg-fg/5 (cream-at-5% on dark page reads as a slightly
-      lifted dark surface; on a cream page would read as a faint
-      cream).
+    - Surface: consumer-provided via className (e.g. bg-fg/5 for the
+      Photo grid's lifted cells, none for Work tiles which paint the
+      surface on the article itself). The component is a pure
+      pulsing-monogram layer.
     - Centred white monogram at ~35% of the cell's smaller dimension.
       max-w-[35%] + max-h-[35%] together cap the image to 35% of
       *whichever* dimension is smaller, so the same component works
-      for square (Photo grid), 16:9 (future WorkGrid), portrait
-      (future hero poster), etc.
-    - Full pulse: opacity oscillates 0 -> 1 -> 0 on a 1.5s
-      easeInOut loop. Reduced-motion users get a static 0.5.
+      for square (Photo grid), 16:9 (Work tiles), portrait, etc.
+    - Half pulse: opacity oscillates 0 -> 0.5 -> 0 on a 3s
+      easeInOut loop, repeating. Reduced-motion users get a static
+      0.25 (the animation midpoint).
+
+  Stagger / ripple:
+    Optional `delay` prop offsets the first pulse cycle by N
+    seconds. Subsequent cycles repeat on the staggered timeline
+    (framer-motion's `delay` applies before the first iteration
+    only, then repeats without further delay). Consumers compute
+    the per-instance delay from grid position:
+      - WorkGrid: top-to-bottom, i * 0.3
+      - Photo grid: diagonal, (row + col) * 0.15
 
   Reusable across image-loading states. Consumers pass className to
   size and position the skeleton (typically w-full h-full to fill a
-  parent cell, or aspect-square / aspect-[16/9] to drive its own
-  dimensions).
+  parent cell, or absolute inset-0 to overlay one).
 */
 
 interface MonogramSkeletonProps {
   src?: string;
   className?: string;
   onClick?: () => void;
+  delay?: number;
 }
+
+const PULSE_DURATION = 3;
+const STATIC_OPACITY = 0.25;
 
 export default function MonogramSkeleton({
   src = '/monogram.png',
   className = '',
   onClick,
+  delay = 0,
 }: MonogramSkeletonProps) {
   const reduceMotion = useReducedMotion() ?? false;
 
@@ -60,11 +74,16 @@ export default function MonogramSkeleton({
         aria-hidden="true"
         draggable={false}
         className="max-w-[35%] max-h-[35%] select-none pointer-events-none"
-        animate={reduceMotion ? { opacity: 0.5 } : { opacity: [0, 1, 0] }}
+        animate={reduceMotion ? { opacity: STATIC_OPACITY } : { opacity: [0, 0.5, 0] }}
         transition={
           reduceMotion
             ? { duration: 0 }
-            : { duration: 1.5, ease: 'easeInOut', repeat: Infinity }
+            : {
+                duration: PULSE_DURATION,
+                ease: 'easeInOut',
+                repeat: Infinity,
+                delay,
+              }
         }
       />
     </div>
