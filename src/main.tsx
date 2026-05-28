@@ -42,12 +42,17 @@ if (splash) {
     // rAF before the first class flip so the browser has settled
     // on the initial opacity:0 — the transition then runs
     // 0 -> 1 instead of skipping straight to the end state.
+    //
+    // Sequence: 500ms fade-in + 1500ms hold + 500ms fade-out =
+    // 2500ms total. The 2000ms before adding the fade-out class
+    // is fade-in duration (500) + hold (1500), and the 500ms
+    // before removal matches the fade-out's CSS transition.
     requestAnimationFrame(() => {
       splash.classList.add('splash--fade-in');
       window.setTimeout(() => {
         splash.classList.add('splash--fade-out');
-        window.setTimeout(() => splash.remove(), 400);
-      }, 1100);
+        window.setTimeout(() => splash.remove(), 500);
+      }, 2000);
     });
   }
 }

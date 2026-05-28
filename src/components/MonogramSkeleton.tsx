@@ -7,7 +7,7 @@ import { motion, useReducedMotion } from 'framer-motion';
     - Surface: bg-fg/5 (cream-at-5% on dark page reads as a slightly
       lifted dark surface; on a cream page would read as a faint
       cream).
-    - Centred dark monogram at ~35% of the cell's smaller dimension.
+    - Centred white monogram at ~35% of the cell's smaller dimension.
       max-w-[35%] + max-h-[35%] together cap the image to 35% of
       *whichever* dimension is smaller, so the same component works
       for square (Photo grid), 16:9 (future WorkGrid), portrait
@@ -28,7 +28,7 @@ interface MonogramSkeletonProps {
 }
 
 export default function MonogramSkeleton({
-  src = '/monogram_dark.png',
+  src = '/monogram.png',
   className = '',
   onClick,
 }: MonogramSkeletonProps) {
