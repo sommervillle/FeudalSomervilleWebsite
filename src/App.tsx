@@ -54,13 +54,14 @@ function PageTransition({ children }: { children: React.ReactNode }) {
   );
 }
 
-// AnimatePresence mode="wait" runs PageTransition exit then enter
-// back-to-back at DURATION_FAST each, so a full route crossfade
-// runs for 2 * DURATION_FAST. The 50ms buffer covers the one-render
-// gap between unmount and mount. This is how long the burger
-// overlay must stay opaque so the user never sees the crossfade
-// happening underneath when they tap a menu link.
-const CROSSFADE_TOTAL_MS = Math.round(DURATION_FAST * 2 * 1000) + 50;
+// How long the burger overlay stays opaque after a burger-driven
+// route change before it starts its own close animation. Long
+// enough to cover the actual route swap (the moment AnimatePresence
+// unmounts the old route and mounts the new one) but NOT the full
+// incoming-page animation — the burger clears as the new page is
+// fading in so the user can see its own entrance / cascade play
+// out underneath.
+const BURGER_HOLD_MS = 150;
 
 export default function App() {
   const location = useLocation();
@@ -184,9 +185,9 @@ export default function App() {
 
   // Called from the burger nav handlers when an actual route
   // change is happening. Keeps the overlay fully opaque for
-  // CROSSFADE_TOTAL_MS so the AnimatePresence crossfade runs
-  // entirely hidden behind it, then closes — the user sees the
-  // burger lift onto the new page already in its settled state.
+  // BURGER_HOLD_MS — long enough to cover the route swap itself,
+  // then lifts as the new page is fading in so the user sees the
+  // incoming cascade / entrance animation underneath.
   //
   // No-op when the burger isn't open (desktop nav calls these
   // handlers too — menuOpen is false there, nothing to close).
@@ -202,7 +203,7 @@ export default function App() {
     window.setTimeout(() => {
       setMenuOpen(false);
       burgerDelayedCloseScheduled.current = false;
-    }, CROSSFADE_TOTAL_MS);
+    }, BURGER_HOLD_MS);
   };
 
   // Tapping a link for the route you're already on: no crossfade
