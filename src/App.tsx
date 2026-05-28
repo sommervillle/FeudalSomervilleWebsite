@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Home from './pages/Home';
@@ -96,22 +96,47 @@ export default function App() {
   // crossfade — exactly the flash we're trying to hide.
   const burgerDelayedCloseScheduled = useRef(false);
 
-  // Header background: observe Hero only on Home; otherwise stay solid.
-  useEffect(() => {
-    if (!isHome) {
-      setHeaderSolid(true);
-      return;
-    }
+  // When the route changes to /, we want the header to flip from
+  // solid to transparent INSTANTLY (no fade) so the new page paints
+  // with a transparent header from frame 1. framer-motion runs the
+  // bg/border `animate` values through the configured transition,
+  // so a normal state change would otherwise animate over
+  // DURATION_FAST. This ref is set in the layout-effect below the
+  // moment isHome flips true, read by motion.header's transition
+  // to use duration:0 for that one render, then reset after paint.
+  const skipNextHeaderBgAnim = useRef(false);
 
-    // AnimatePresence mode="wait" defers Home (and therefore Hero)
-    // mounting until /info or /photo finishes its exit animation, so on
-    // a route change isHome flips true before the Hero element exists.
-    // The previous implementation read getElementById('hero') once and
-    // bailed when it was null, leaving headerSolid stuck at true and
-    // the header dark over the (now in-view) hero. Poll on rAF until
-    // Hero appears in the DOM, then attach the observer — its first
-    // entry callback re-evaluates the current scroll position so the
-    // header correctly returns to transparent at the top of /.
+  // Header background — state side. Runs synchronously BEFORE paint
+  // (useLayoutEffect) so the first frame of the new route already
+  // has the correct headerSolid value. For the entry-to-/ case the
+  // skipNextHeaderBgAnim flag is also raised here so motion.header
+  // reads duration:0 on its next bg/border transition — net effect:
+  // the header flips from solid to transparent instantly, no fade.
+  // The flag is cleared by a no-deps effect after paint so
+  // subsequent state changes (the IO-driven scroll toggle, or
+  // leaving / for /info) animate normally.
+  useLayoutEffect(() => {
+    if (isHome) {
+      skipNextHeaderBgAnim.current = true;
+      setHeaderSolid(false);
+    } else {
+      setHeaderSolid(true);
+    }
+  }, [isHome]);
+
+  // Header background — IO side. Runs after paint so the Hero
+  // element is in the DOM (or will be soon).
+  //
+  // AnimatePresence mode="wait" defers Home (and therefore Hero)
+  // mounting until /info or /photo finishes its exit animation, so
+  // on a route change isHome flips true before the Hero element
+  // exists. Poll on rAF until Hero appears, then attach the
+  // observer — its first entry callback re-evaluates the current
+  // scroll position so the header stays transparent at the top of /
+  // and starts re-solidifying as the user scrolls past Hero.
+  useEffect(() => {
+    if (!isHome) return;
+
     let rafId = 0;
     let observer: IntersectionObserver | null = null;
 
@@ -135,6 +160,16 @@ export default function App() {
       observer?.disconnect();
     };
   }, [isHome]);
+
+  // Clear the bg-anim skip flag after every paint. The render that
+  // *uses* the flag (the route-to-/ transition) reads the ref
+  // during render, so by the time this effect runs the animation
+  // (or non-animation) has already been queued with the right
+  // transition. After that, all subsequent renders see the flag
+  // false and bg/border changes animate normally.
+  useEffect(() => {
+    skipNextHeaderBgAnim.current = false;
+  });
 
   // Back-to-top visibility.
   useEffect(() => {
@@ -252,12 +287,21 @@ export default function App() {
           borderBottomColor: headerSolid ? 'rgba(242, 241, 237, 0.1)' : 'rgba(242, 241, 237, 0)',
           y: headerOffscreen ? '-100%' : 0,
         }}
-        // Per-property transitions: bg/border keep the existing
-        // EASE_SMOOTH/DURATION_FAST; the one-shot slide on splash
-        // exit uses 600ms EASE_OUT per spec.
+        // Per-property transitions:
+        //   default — bg/border. Normal EASE_SMOOTH/DURATION_FAST
+        //   fade, except on the render that enters /, where the
+        //   skipNextHeaderBgAnim ref forces duration:0 so the
+        //   header snaps instantly to transparent without a fade.
+        //   The flag is cleared by an effect after paint, so the
+        //   IO-driven scroll fade and the / -> /info fade keep
+        //   their normal EASE_SMOOTH curve.
+        //
+        //   y — one-shot 600ms EASE_OUT slide on splash exit.
         transition={{
-          default: { duration: DURATION_FAST, ease: EASE_SMOOTH },
-          y:       { duration: 0.6,           ease: EASE_OUT    },
+          default: skipNextHeaderBgAnim.current
+            ? { duration: 0 }
+            : { duration: DURATION_FAST, ease: EASE_SMOOTH },
+          y: { duration: 0.6, ease: EASE_OUT },
         }}
       >
         {/*
