@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { scrollToElement } from '../smoothScroll';
 import { DURATION_MEDIUM, EASE_OUT } from '../motion';
@@ -27,9 +27,35 @@ const SHOWREEL_BUTTON_CLASS =
   'hover:border-fg/60 hover:text-fg hover:bg-fg/[0.04] ' +
   'transition-all duration-300';
 
+// Vertical distance for the splash-exit slide-in. 200px clears
+// both the SHOWREEL wrapper (bottom-[100px], ~40px tall) and the
+// chevron (bottom-8 / ~33px tall) below the Hero's bottom edge
+// while the splash is on screen. Hero has overflow-hidden so the
+// translated elements are visually clipped during this state.
+const HERO_SLIDE_OFFSET = 200;
+
 export default function Hero() {
   const reduceMotion = useReducedMotion() ?? false;
   const [showreelOpen, setShowreelOpen] = useState(false);
+
+  // Hero elements slide in coordinated with the HTML splash exit.
+  // Initialised at mount by checking document.getElementById('splash')
+  // — same pattern App.tsx uses for the header slide. Same edge-case
+  // coverage too: direct landing on /info or /photo, non-first visit,
+  // and prefers-reduced-motion all have #splash already removed by
+  // main.tsx before this component renders, so this initialises to
+  // false and elements paint at final position.
+  const [heroOffscreen, setHeroOffscreen] = useState(() => {
+    if (typeof document === 'undefined') return false;
+    return !!document.getElementById('splash');
+  });
+
+  useEffect(() => {
+    if (!heroOffscreen) return;
+    const onSplashExit = () => setHeroOffscreen(false);
+    window.addEventListener('splash-exit', onSplashExit);
+    return () => window.removeEventListener('splash-exit', onSplashExit);
+  }, [heroOffscreen]);
 
   return (
     <>
@@ -49,40 +75,65 @@ export default function Hero() {
           flips to md:block + md:max-w-5xl md:mx-auto so the button
           sits at the left edge of the AboutBlock safe-zone, exactly
           as before.
+
+          Outer motion.div owns positioning + the splash-exit slide
+          (translateY(200px) -> 0). Inner motion.div keeps the
+          existing on-mount fade+rise so the SHOWREEL still has a
+          gentle entrance in the no-splash cases (refresh /, SPA-nav
+          to /). Two y transforms compose cleanly because they're
+          on separate elements.
         */}
         <motion.div
           className="absolute bottom-[100px] inset-x-0 z-10 pointer-events-none md:px-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: DURATION_MEDIUM, ease: EASE_OUT }}
+          initial={false}
+          animate={{ y: heroOffscreen ? HERO_SLIDE_OFFSET : 0 }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
         >
-          <div className="flex justify-center md:block md:max-w-5xl md:mx-auto">
-            {/* Mobile: opens the ShowreelLightbox. */}
-            <button
-              type="button"
-              onClick={() => setShowreelOpen(true)}
-              className={`md:hidden ${SHOWREEL_BUTTON_CLASS}`}
-            >
-              Showreel
-            </button>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: DURATION_MEDIUM, ease: EASE_OUT }}
+          >
+            <div className="flex justify-center md:block md:max-w-5xl md:mx-auto">
+              {/* Mobile: opens the ShowreelLightbox. */}
+              <button
+                type="button"
+                onClick={() => setShowreelOpen(true)}
+                className={`md:hidden ${SHOWREEL_BUTTON_CLASS}`}
+              >
+                Showreel
+              </button>
 
-            {/* Desktop: scrolls to the WorkGrid section (unchanged). */}
-            <a
-              href="#work"
-              className={`hidden md:inline-flex ${SHOWREEL_BUTTON_CLASS}`}
-            >
-              Showreel
-            </a>
-          </div>
+              {/* Desktop: scrolls to the WorkGrid section (unchanged). */}
+              <a
+                href="#work"
+                className={`hidden md:inline-flex ${SHOWREEL_BUTTON_CLASS}`}
+              >
+                Showreel
+              </a>
+            </div>
+          </motion.div>
         </motion.div>
 
         {/*
-          Chevron — outer div owns horizontal centring via Tailwind's
-          -translate-x-1/2 (a CSS transform). The inner motion.div owns
-          the y-drift; nesting keeps framer-motion's transform from
-          clobbering the centring transform on the same element.
+          Chevron — three nested layers, each owning one transform
+          concern so they don't clobber each other on the same DOM
+          node:
+            1. Outer <div> — Tailwind -translate-x-1/2 for horizontal
+               centring (a CSS transform).
+            2. Middle motion.div — splash-exit slide
+               (translateY(200px) -> 0, EASE_OUT, 600ms).
+            3. Inner motion.div — infinite y-drift loop.
+          Two motion components means framer-motion writes two
+          independent inline transforms; nesting composes them
+          via the DOM hierarchy instead of fighting on one node.
         */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+          <motion.div
+            initial={false}
+            animate={{ y: heroOffscreen ? HERO_SLIDE_OFFSET : 0 }}
+            transition={{ duration: 0.6, ease: EASE_OUT }}
+          >
           <motion.div
             animate={{ y: [0, -3, 0] }}
             transition={{
@@ -116,6 +167,7 @@ export default function Hero() {
                 />
               </svg>
             </button>
+          </motion.div>
           </motion.div>
         </div>
 
