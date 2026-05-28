@@ -7,9 +7,9 @@ import { EASE_OUT } from '../motion';
   Timing (2.5s total):
     0.0s          mount: backdrop opaque, monogram at opacity 0
                   and translateY 20px
-    0.0 -> 0.7s   monogram rises 20px and fades in to opacity 1
-    0.7 -> 2.0s   hold (1.3s — slightly shorter than the previous
-                  500ms-fade version to keep the 2.5s total intact)
+    0.0 -> 1.5s   monogram rises 20px and fades in to opacity 1
+    1.5 -> 2.0s   hold (0.5s — fade-in eats most of the pre-exit
+                  window; the brief settle still reads as a beat)
     2.0 -> 2.5s   backdrop fades opacity 1 -> 0 (monogram fades with it
                   since it inherits the parent's compositing alpha)
     2.5s          onComplete fires -> parent unmounts the splash
@@ -61,7 +61,7 @@ export default function Splash({ onComplete }: SplashProps) {
         alt=""
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: EASE_OUT }}
+        transition={{ duration: 1.5, ease: EASE_OUT }}
         className="h-[160px] md:h-[200px] w-auto"
       />
     </motion.div>
