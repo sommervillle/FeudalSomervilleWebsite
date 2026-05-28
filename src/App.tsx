@@ -5,14 +5,20 @@ import Home from './pages/Home';
 import Info from './pages/Info';
 import Photo from './pages/Photo';
 import { scrollToY } from './smoothScroll';
-import { DURATION_FAST, DURATION_MEDIUM, EASE_OUT, EASE_SMOOTH } from './motion';
+import { DURATION_FAST, DURATION_MEDIUM, EASE_OUT } from './motion';
 
 /*
   Layout shell: fixed header + routed page content + back-to-top.
 
   Animations live here:
-    - Header bg cross-fades transparent <-> bg-bg via motion.header
-      backgroundColor on EASE_SMOOTH / DURATION_FAST.
+    - Header bg cross-fades transparent <-> #050505 via a CSS
+      transition on Tailwind classes (transition-colors over 300ms
+      on a cubic-bezier match of EASE_SMOOTH). Class-driven rather
+      than framer-motion-driven so the route-entry flip can be made
+      truly instant via a `transition-none` swap; framer-motion's
+      animation scheduler can leave one paint frame of the previous
+      inline style.
+    - Header y slide-in (splash exit) IS still framer-motion.
     - Burger icon (3 lines) morphs into an X via per-span y + rotate.
     - Overlay opens with staggered nav-item rise (variants on motion.nav).
     - Route changes cross-fade (AnimatePresence + per-page wrapper).
@@ -96,28 +102,37 @@ export default function App() {
   // crossfade — exactly the flash we're trying to hide.
   const burgerDelayedCloseScheduled = useRef(false);
 
-  // When the route changes to /, we want the header to flip from
-  // solid to transparent INSTANTLY (no fade) so the new page paints
-  // with a transparent header from frame 1. framer-motion runs the
-  // bg/border `animate` values through the configured transition,
-  // so a normal state change would otherwise animate over
-  // DURATION_FAST. This ref is set in the layout-effect below the
-  // moment isHome flips true, read by motion.header's transition
-  // to use duration:0 for that one render, then reset after paint.
-  const skipNextHeaderBgAnim = useRef(false);
+  // When the route changes to /, the header bg flips from solid to
+  // transparent INSTANTLY — no fade — so the new page paints with a
+  // transparent header from frame 1.
+  //
+  // We do this via a Tailwind class flip (not a framer-motion
+  // animate prop) because CSS transitions run synchronously off the
+  // commit's DOM mutation: the browser sees the new class and the
+  // old/new bg value on the same paint, and `transition-none` on
+  // that render kills the fade outright. framer-motion's animate
+  // prop, by contrast, drives its inline-style writes through an
+  // animation scheduler — even with duration:0 the previous frame
+  // can paint with the old inline bg, which is what we kept seeing.
+  //
+  // The flag is set in the layout-effect below the moment isHome
+  // flips true, read by motion.header's className to swap in
+  // `transition-none` for that one render, then cleared after paint.
+  const skipNextBgTransition = useRef(false);
 
   // Header background — state side. Runs synchronously BEFORE paint
   // (useLayoutEffect) so the first frame of the new route already
   // has the correct headerSolid value. For the entry-to-/ case the
-  // skipNextHeaderBgAnim flag is also raised here so motion.header
-  // reads duration:0 on its next bg/border transition — net effect:
-  // the header flips from solid to transparent instantly, no fade.
-  // The flag is cleared by a no-deps effect after paint so
-  // subsequent state changes (the IO-driven scroll toggle, or
-  // leaving / for /info) animate normally.
+  // skipNextBgTransition flag is also raised here so motion.header's
+  // className includes `transition-none` on that one render — net
+  // effect: the bg flips from solid to transparent on the same paint
+  // the new route mounts on, with no CSS transition firing. The
+  // flag is cleared by a no-deps effect after paint so subsequent
+  // state changes (the IO-driven scroll toggle, or leaving / for
+  // /info) re-engage the normal `transition-colors` fade.
   useLayoutEffect(() => {
     if (isHome) {
-      skipNextHeaderBgAnim.current = true;
+      skipNextBgTransition.current = true;
       setHeaderSolid(false);
     } else {
       setHeaderSolid(true);
@@ -161,14 +176,14 @@ export default function App() {
     };
   }, [isHome]);
 
-  // Clear the bg-anim skip flag after every paint. The render that
-  // *uses* the flag (the route-to-/ transition) reads the ref
-  // during render, so by the time this effect runs the animation
-  // (or non-animation) has already been queued with the right
-  // transition. After that, all subsequent renders see the flag
-  // false and bg/border changes animate normally.
+  // Clear the bg-transition skip flag after every paint. The render
+  // that *uses* the flag (the route-to-/ transition) reads the ref
+  // during render to pick `transition-none` over `transition-colors`,
+  // so by the time this effect runs the browser has already
+  // painted with the instant flip. All subsequent renders see the
+  // flag false and bg/border changes use the normal CSS fade.
   useEffect(() => {
-    skipNextHeaderBgAnim.current = false;
+    skipNextBgTransition.current = false;
   });
 
   // Back-to-top visibility.
@@ -280,29 +295,32 @@ export default function App() {
   return (
     <>
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 pointer-events-none border-b"
+        className={[
+          // base
+          'fixed top-0 left-0 right-0 z-50 pointer-events-none border-b',
+          // bg + border — driven by headerSolid via classNames (not
+          // framer-motion animate). CSS-class flips happen on the
+          // commit's DOM mutation, before paint, so combined with
+          // the conditional transition class below the route-entry
+          // case is truly instant.
+          headerSolid
+            ? 'bg-[#050505] border-fg/10'
+            : 'bg-transparent border-transparent',
+          // Normal fade for bg/border changes (scroll past Hero on /,
+          // or leaving / for /info). EASE_SMOOTH match via arbitrary
+          // cubic-bezier. When skipNextBgTransition is raised by the
+          // layout-effect on entry to /, swap to `transition-none`
+          // for that one render — the bg/border flip in zero time.
+          skipNextBgTransition.current
+            ? 'transition-none'
+            : 'transition-colors duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]',
+        ].join(' ')}
+        // framer-motion now only animates y (the splash-exit slide).
+        // bg/border live in className above, so no `default` key in
+        // transition is needed — this transition applies solely to y.
         initial={false}
-        animate={{
-          backgroundColor: headerSolid ? 'rgba(5, 5, 5, 1)' : 'rgba(5, 5, 5, 0)',
-          borderBottomColor: headerSolid ? 'rgba(242, 241, 237, 0.1)' : 'rgba(242, 241, 237, 0)',
-          y: headerOffscreen ? '-100%' : 0,
-        }}
-        // Per-property transitions:
-        //   default — bg/border. Normal EASE_SMOOTH/DURATION_FAST
-        //   fade, except on the render that enters /, where the
-        //   skipNextHeaderBgAnim ref forces duration:0 so the
-        //   header snaps instantly to transparent without a fade.
-        //   The flag is cleared by an effect after paint, so the
-        //   IO-driven scroll fade and the / -> /info fade keep
-        //   their normal EASE_SMOOTH curve.
-        //
-        //   y — one-shot 600ms EASE_OUT slide on splash exit.
-        transition={{
-          default: skipNextHeaderBgAnim.current
-            ? { duration: 0 }
-            : { duration: DURATION_FAST, ease: EASE_SMOOTH },
-          y: { duration: 0.6, ease: EASE_OUT },
-        }}
+        animate={{ y: headerOffscreen ? '-100%' : 0 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
       >
         {/*
           Padding now lives on the outer wrapper; the inner row is
