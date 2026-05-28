@@ -78,6 +78,19 @@ export default function App() {
   const [headerSolid, setHeaderSolid] = useState(!isHome);
   const [showTop,     setShowTop]     = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
+  // Header opacity, tied to the burger menu (and the scroll-past-Hero
+  // rule on /). The visual band — monogram + bg + border — flips
+  // opacity 0 when the burger opens, then returns to 1 (or stays at
+  // 0) based on how the burger is closed. Defaults to 1 so initial
+  // mounts and direct loads behave normally.
+  //
+  // The burger BUTTON itself (the morphing three-lines / X) is in a
+  // separate wrapper outside motion.header and is NOT tied to this
+  // opacity — otherwise the close affordance would disappear while
+  // the menu was open. The spec mentions "burger icon" in the same
+  // breath as monogram/bg, but the morphing button needs to remain
+  // tappable for the X to do its job.
+  const [headerVisible, setHeaderVisible] = useState(true);
   // Header + burger slide-in coordinated with the HTML splash exit.
   // True iff the splash is currently animating in the DOM when App
   // mounts — in which case the header and burger start off-screen
@@ -119,6 +132,15 @@ export default function App() {
   // flips true, read by motion.header's className to swap in
   // `transition-none` for that one render, then cleared after paint.
   const skipNextBgTransition = useRef(false);
+
+  // Opacity changes are INSTANT by default (burger open/close, etc).
+  // The one exception is the IO scroll-past-Hero trigger on / — per
+  // spec, the "header fades up to solid as it already does" with the
+  // normal EASE_SMOOTH curve. The IO callback raises this flag right
+  // before its setState calls, motion.header's className picks the
+  // transition variant that includes opacity for that one render,
+  // and the no-deps effect clears the flag after paint.
+  const allowNextOpacityFade = useRef(false);
 
   // Header background — state side. Runs synchronously BEFORE paint
   // (useLayoutEffect) so the first frame of the new route already
@@ -162,7 +184,23 @@ export default function App() {
         return;
       }
       observer = new IntersectionObserver(
-        ([entry]) => setHeaderSolid(!entry.isIntersecting),
+        ([entry]) => {
+          const pastHero = !entry.isIntersecting;
+          if (pastHero) {
+            // Past Hero on /: bg becomes solid AND the header should
+            // be visible. Raise the opacity-fade flag so the (rare)
+            // 0 -> 1 case after a burger-Work-tap fades in with the
+            // same EASE_SMOOTH curve as the bg, per spec.
+            allowNextOpacityFade.current = true;
+            setHeaderSolid(true);
+            setHeaderVisible(true);
+          } else {
+            // Back at Hero on /: bg returns to transparent. Don't
+            // touch headerVisible — once revealed, the header stays
+            // visible for the rest of the session.
+            setHeaderSolid(false);
+          }
+        },
         { threshold: 0, rootMargin: '-150px 0px 0px 0px' },
       );
       observer.observe(hero);
@@ -176,14 +214,16 @@ export default function App() {
     };
   }, [isHome]);
 
-  // Clear the bg-transition skip flag after every paint. The render
-  // that *uses* the flag (the route-to-/ transition) reads the ref
-  // during render to pick `transition-none` over `transition-colors`,
-  // so by the time this effect runs the browser has already
-  // painted with the instant flip. All subsequent renders see the
-  // flag false and bg/border changes use the normal CSS fade.
+  // Clear both transition flags after every paint. The render that
+  // *uses* a flag (route-to-/ for skipNextBgTransition, IO past-Hero
+  // for allowNextOpacityFade) reads the ref during render and
+  // commits the right transition class, so by the time this effect
+  // runs the browser has already taken the rule into the CSS engine
+  // for the in-flight transition. Subsequent renders see the flags
+  // false: bg/border keep their normal fade, opacity stays instant.
   useEffect(() => {
     skipNextBgTransition.current = false;
+    allowNextOpacityFade.current = false;
   });
 
   // Back-to-top visibility.
@@ -259,25 +299,48 @@ export default function App() {
   // Tapping a link for the route you're already on: no crossfade
   // will run, so close the burger immediately. Otherwise navigate
   // and let scheduleBurgerClose cover the crossfade.
+  //
+  // Header reveal: both branches set headerVisible=true. Per spec
+  // case 2 (Info/Photo tap), the header should "instantly return
+  // to opacity 1 in its solid state" — so we also raise
+  // skipNextBgTransition so the bg flips solid in zero time
+  // under the burger cover. By the time the cover lifts the
+  // header is fully composed at the new route's solid state.
   const navigateAndCloseBurger = (path: string) => {
     if (location.pathname === path) {
+      // Same-route — case 4 in the spec. Reveal header in current
+      // state (bg already correct for current route). Instant.
+      setHeaderVisible(true);
       setMenuOpen(false);
       return;
     }
+    setHeaderVisible(true);
+    skipNextBgTransition.current = true;
     navigate(path);
     window.scrollTo({ top: 0 });
     scheduleBurgerClose();
   };
 
+  // Work tap from the burger menu. Two cases:
+  //   - Already on / : behave like a same-route tap (reveal
+  //     header in its current scroll-derived state, close burger,
+  //     run cinematic scroll-to-top).
+  //   - Coming from /info or /photo: navigate to /. Header
+  //     STAYS hidden (headerVisible was already false from when
+  //     the menu opened). Per spec case 3, only the IO scroll-
+  //     past-Hero trigger can later flip it back to visible.
   const goHomeAndScrollTop = (e: React.MouseEvent) => {
     e.preventDefault();
     if (isHome) {
-      // Already on /; no nav, no crossfade. Close burger and
-      // run the cinematic scroll-to-top immediately.
+      setHeaderVisible(true);
       setMenuOpen(false);
       scrollToY(0, reduceMotion);
       return;
     }
+    // Don't touch headerVisible — keep it false through the route
+    // change. useLayoutEffect on [isHome] sets skipNextBgTransition
+    // for the bg flip, so the bg-to-transparent change is instant
+    // under the burger cover too. Header stays cleanly hidden.
     navigate('/');
     window.scrollTo({ top: 0 });
     scheduleBurgerClose();
@@ -306,18 +369,32 @@ export default function App() {
           headerSolid
             ? 'bg-[#050505] border-fg/10'
             : 'bg-transparent border-transparent',
-          // Normal fade for bg/border changes (scroll past Hero on /,
-          // or leaving / for /info). EASE_SMOOTH match via arbitrary
-          // cubic-bezier. When skipNextBgTransition is raised by the
-          // layout-effect on entry to /, swap to `transition-none`
-          // for that one render — the bg/border flip in zero time.
-          skipNextBgTransition.current
-            ? 'transition-none'
-            : 'transition-colors duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]',
+          // Opacity — driven by headerVisible. Burger open hides the
+          // header (monogram + bg) by flipping to opacity-0; burger
+          // close flips back to opacity-100 (or stays at 0 for the
+          // Work-tap-to-home case per spec).
+          headerVisible ? 'opacity-100' : 'opacity-0',
+          // Transition class — composed from the two flags so the
+          // right CSS properties have a fade rule on this render:
+          //   skipNextBgTransition + !allowNextOpacityFade -> none
+          //   default (neither flag)                       -> bg/border only
+          //   IO past-Hero (allowNextOpacityFade)          -> + opacity
+          // EASE_SMOOTH match via arbitrary cubic-bezier. All four
+          // branches return static class strings so Tailwind's JIT
+          // picks them up at build time.
+          (() => {
+            const bgFade = !skipNextBgTransition.current;
+            const opFade = allowNextOpacityFade.current;
+            if (!bgFade && !opFade) return 'transition-none';
+            if (bgFade  && !opFade) return 'transition-colors duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
+            if (!bgFade &&  opFade) return 'transition-opacity duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
+            return 'transition-[background-color,border-color,opacity] duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
+          })(),
         ].join(' ')}
         // framer-motion now only animates y (the splash-exit slide).
-        // bg/border live in className above, so no `default` key in
-        // transition is needed — this transition applies solely to y.
+        // bg/border/opacity live in className above, so no `default`
+        // key in transition is needed — this transition applies
+        // solely to y.
         initial={false}
         animate={{ y: headerOffscreen ? '-100%' : 0 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
@@ -386,7 +463,20 @@ export default function App() {
       >
         <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 min-h-[120px] flex items-center justify-end">
           <button
-            onClick={() => setMenuOpen((o) => !o)}
+            onClick={() => {
+              if (menuOpen) {
+                // Closing via X — case 4 in the spec. Reveal the
+                // header in its current/correct state. Instant.
+                setHeaderVisible(true);
+                setMenuOpen(false);
+              } else {
+                // Opening — hide the header (monogram + bg) so the
+                // overlay-fade close later reveals only what the
+                // close path explicitly chooses to show.
+                setHeaderVisible(false);
+                setMenuOpen(true);
+              }
+            }}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
             className="pointer-events-auto relative w-6 h-6 p-2 mr-2 text-fg box-content"
