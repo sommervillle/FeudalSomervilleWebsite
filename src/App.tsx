@@ -358,57 +358,56 @@ export default function App() {
   return (
     <>
       <motion.header
-        className={[
-          // base
-          'fixed top-0 left-0 right-0 z-50 pointer-events-none border-b',
-          // bg + border — driven by headerSolid via classNames (not
-          // framer-motion animate). CSS-class flips happen on the
-          // commit's DOM mutation, before paint, so combined with
-          // the conditional transition class below the route-entry
-          // case is truly instant.
-          headerSolid
-            ? 'bg-[#050505] border-fg/10'
-            : 'bg-transparent border-transparent',
-          // Opacity — driven by headerVisible. Burger open hides the
-          // header (monogram + bg) by flipping to opacity-0; burger
-          // close flips back to opacity-100 (or stays at 0 for the
-          // Work-tap-to-home case per spec).
-          headerVisible ? 'opacity-100' : 'opacity-0',
-          // Transition class — composed from the two flags so the
-          // right CSS properties have a fade rule on this render:
-          //   skipNextBgTransition + !allowNextOpacityFade -> none
-          //   default (neither flag)                       -> bg/border only
-          //   IO past-Hero (allowNextOpacityFade)          -> + opacity
-          // EASE_SMOOTH match via arbitrary cubic-bezier. All four
-          // branches return static class strings so Tailwind's JIT
-          // picks them up at build time.
-          (() => {
-            const bgFade = !skipNextBgTransition.current;
-            const opFade = allowNextOpacityFade.current;
-            if (!bgFade && !opFade) return 'transition-none';
-            if (bgFade  && !opFade) return 'transition-colors duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
-            if (!bgFade &&  opFade) return 'transition-opacity duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
-            return 'transition-[background-color,border-color,opacity] duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
-          })(),
-        ].join(' ')}
-        // framer-motion now only animates y (the splash-exit slide).
-        // bg/border/opacity live in className above, so no `default`
-        // key in transition is needed — this transition applies
-        // solely to y.
+        className="fixed top-0 left-0 right-0 z-50 pointer-events-none"
+        // framer-motion owns y (the splash-exit slide). Background
+        // layer below handles bg/border/opacity via CSS classes.
         initial={false}
         animate={{ y: headerOffscreen ? '-100%' : 0 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
       >
         {/*
-          Padding now lives on the outer wrapper; the inner row is
-          max-w-5xl mx-auto — same pattern as AboutBlock (section
-          has the gutter, inner block holds the safe-zone). Logo
-          and nav sit on the max-w container's edges on desktop,
-          aligning with the AboutBlock columns. Mobile (max-w-5xl
-          larger than viewport) collapses naturally to the px-6
-          gutter as before.
+          Background layer — absolutely-positioned div sitting behind
+          the monogram + nav. Per spec, this is the ONLY part of the
+          header whose opacity toggles with the burger menu. The
+          monogram and burger/X icon stay persistently visible; just
+          the dark fill + bottom border appears or disappears.
+
+          Same 4-branch transition composition as the previous PR,
+          now scoped to this single element. CSS class flips apply
+          on the commit's DOM mutation, before paint, so route-entry
+          and burger flips are truly instant when their skip flag
+          is set; the IO scroll-past-Hero fade is the one animated
+          case.
         */}
-        <div className="px-6 md:px-10 py-5">
+        <div
+          aria-hidden="true"
+          className={[
+            'absolute inset-0 border-b',
+            headerSolid
+              ? 'bg-[#050505] border-fg/10'
+              : 'bg-transparent border-transparent',
+            headerVisible ? 'opacity-100' : 'opacity-0',
+            (() => {
+              const bgFade = !skipNextBgTransition.current;
+              const opFade = allowNextOpacityFade.current;
+              if (!bgFade && !opFade) return 'transition-none';
+              if (bgFade  && !opFade) return 'transition-colors duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
+              if (!bgFade &&  opFade) return 'transition-opacity duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
+              return 'transition-[background-color,border-color,opacity] duration-300 ease-[cubic-bezier(0.7,0,0.3,1)]';
+            })(),
+          ].join(' ')}
+        />
+
+        {/*
+          Foreground — monogram + desktop nav. Always at opacity 1;
+          never touched by the burger or route-entry logic. `relative`
+          stacks it above the absolute bg layer above (both have
+          z-auto, document order picks the later sibling).
+
+          Padding lives here (was on the outer wrapper before the
+          split). Container/safe-zone alignment unchanged.
+        */}
+        <div className="relative px-6 md:px-10 py-5">
           <div className="max-w-5xl mx-auto flex items-center justify-between">
           <a
             href="/"
