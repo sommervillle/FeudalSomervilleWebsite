@@ -63,6 +63,22 @@ export default function App() {
   const [headerSolid, setHeaderSolid] = useState(!isHome);
   const [showTop,     setShowTop]     = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
+  // Header + burger slide-in coordinated with the HTML splash exit.
+  // True iff the splash is currently animating in the DOM when App
+  // mounts — in which case the header and burger start off-screen
+  // (translateY -100%) and slide down when main.tsx dispatches
+  // 'splash-exit'. Once flipped false, never flips back: the
+  // entrance is a single one-shot animation per session per spec.
+  //
+  // For all other cases (splash already shown this session, direct
+  // load on /info or /photo, or prefers-reduced-motion suppressing
+  // the splash entirely), main.tsx removes #splash before App
+  // renders, so this initialises to false and the header is at its
+  // final position from first paint.
+  const [headerOffscreen, setHeaderOffscreen] = useState(() => {
+    if (typeof document === 'undefined') return false;
+    return !!document.getElementById('splash');
+  });
 
   // Header background: observe Hero only on Home; otherwise stay solid.
   useEffect(() => {
@@ -113,6 +129,18 @@ export default function App() {
 
   // Close the mobile menu when the route changes.
   useEffect(() => setMenuOpen(false), [location.pathname]);
+
+  // Slide the header + burger in when the HTML splash starts
+  // fading out. Listener attached only while headerOffscreen is
+  // true, so subsequent route-change splashes (React Splash on
+  // SPA-nav into /) don't re-trigger an animation that already
+  // ran on this mount.
+  useEffect(() => {
+    if (!headerOffscreen) return;
+    const onSplashExit = () => setHeaderOffscreen(false);
+    window.addEventListener('splash-exit', onSplashExit);
+    return () => window.removeEventListener('splash-exit', onSplashExit);
+  }, [headerOffscreen]);
 
   // Content protection — block right-click globally and drag on
   // images/videos. Paired with the img/video CSS rules in
@@ -172,8 +200,15 @@ export default function App() {
         animate={{
           backgroundColor: headerSolid ? 'rgba(5, 5, 5, 1)' : 'rgba(5, 5, 5, 0)',
           borderBottomColor: headerSolid ? 'rgba(242, 241, 237, 0.1)' : 'rgba(242, 241, 237, 0)',
+          y: headerOffscreen ? '-100%' : 0,
         }}
-        transition={{ duration: DURATION_FAST, ease: EASE_SMOOTH }}
+        // Per-property transitions: bg/border keep the existing
+        // EASE_SMOOTH/DURATION_FAST; the one-shot slide on splash
+        // exit uses 600ms EASE_OUT per spec.
+        transition={{
+          default: { duration: DURATION_FAST, ease: EASE_SMOOTH },
+          y:       { duration: 0.6,           ease: EASE_OUT    },
+        }}
       >
         {/*
           Padding now lives on the outer wrapper; the inner row is
@@ -231,7 +266,12 @@ export default function App() {
         open toggles state back, and the three spans morph to/from
         the X. z-[70] keeps it tappable above the overlay (z-[60]).
       */}
-      <div className="fixed top-0 left-0 right-0 z-[70] pointer-events-none md:hidden">
+      <motion.div
+        className="fixed top-0 left-0 right-0 z-[70] pointer-events-none md:hidden"
+        initial={false}
+        animate={{ y: headerOffscreen ? '-100%' : 0 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+      >
         <div className="max-w-5xl mx-auto px-6 md:px-10 py-5 min-h-[120px] flex items-center justify-end">
           <button
             onClick={() => setMenuOpen((o) => !o)}
@@ -256,7 +296,7 @@ export default function App() {
             />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/*
         Mobile overlay menu.
